@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "940588776168",
+    "project_id": "geolearn-833a",
+    "storage_bucket": "geolearn-833a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:940588776168:android:296404c16d7b28b25b675d",
+        "android_client_info": {
+          "package_name": "com.example.geolearn"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBPBv1-ZWnSL3du6p76z8Bayyk0W7Gp3eo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
