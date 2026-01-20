@@ -18,4 +18,8 @@
 
     <color name="success">#00E676</color>
     <color name="error">#FF5252</color>
+
+    <color name="star_active">#FFD700</color>
+    <color name="star_inactive">#CCCCCC</color>
+
 </resources>

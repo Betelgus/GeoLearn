@@ -19,6 +19,7 @@ public class QuizResultActivity extends AppCompatActivity {
 
         // 1. Initialize Views
         TextView tvScoreFraction = findViewById(R.id.tvScoreFraction);
+        TextView tvResultSubtitle = findViewById(R.id.tvResultSubtitle); // Link to XML ID
         TextView tvCorrect = findViewById(R.id.tvCorrect);
         TextView tvIncorrect = findViewById(R.id.tvIncorrect);
         TextView tvTime = findViewById(R.id.tvTime);
@@ -30,18 +31,24 @@ public class QuizResultActivity extends AppCompatActivity {
         int totalQuestions = getIntent().getIntExtra("TOTAL_QUESTIONS", 10);
         String timeTaken = getIntent().getStringExtra("TIME_TAKEN");
 
-        // Safety Check: If time is missing, show a dash
         if (timeTaken == null) timeTaken = "--:--";
 
-        // 3. CALCULATE Correct/Incorrect (Do not rely on Intent for this)
-        int correct = score;
-        int incorrect = totalQuestions - score;
+        // 3. SET THE WORDING BASED ON SCORE
+        if (score >= 0 && score <= 2) {
+            tvResultSubtitle.setText("Good try! Every mistake helps you learn more.");
+        } else if (score >= 3 && score <= 5) {
+            tvResultSubtitle.setText("Good job! You’re getting there — keep going!");
+        } else if (score >= 6 && score <= 8) {
+            tvResultSubtitle.setText("Well done! Your hard work is paying off.");
+        } else if (score >= 9 && score <= 10) {
+            tvResultSubtitle.setText("Excellent! You nailed the quiz! 🎉");
+        }
 
         // 4. Set Data to Views
         tvScoreFraction.setText(score + "/" + totalQuestions);
-        tvCorrect.setText(String.valueOf(correct));
-        tvIncorrect.setText(String.valueOf(incorrect));
-        tvTime.setText(timeTaken); // <--- This sets the time!
+        tvCorrect.setText(String.valueOf(score));
+        tvIncorrect.setText(String.valueOf(totalQuestions - score));
+        tvTime.setText(timeTaken);
 
         // 5. Update Circular Progress Bar
         int percentage = 0;

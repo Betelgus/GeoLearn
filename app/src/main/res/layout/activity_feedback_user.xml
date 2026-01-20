@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F7FB">
+
+    <!-- Top bar -->
+    <LinearLayout
+        android:id="@+id/topBar"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="16dp"
+        android:background="#FFFFFF"
+        android:elevation="4dp">
+
+        <ImageView
+            android:id="@+id/btnBack"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:src="?attr/homeAsUpIndicator"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            app:tint="#333333"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Send Feedback"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#333333"
+            android:layout_marginStart="12dp"/>
+    </LinearLayout>
+
+    <!-- Content -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/topBar"
+        android:padding="18dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Card -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_card_soft2"
+                android:orientation="vertical"
+                android:padding="20dp"
+                android:elevation="4dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="We value your feedback 💙"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#222222"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Tell us how GeoLearn can be better"
+                    android:textSize="14sp"
+                    android:textColor="#777777"
+                    android:layout_marginTop="4dp"/>
+
+                <!-- Name -->
+                <EditText
+                    android:id="@+id/etName"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:hint="Your name"
+                    android:background="@drawable/bg_input"
+                    android:paddingHorizontal="14dp"
+                    android:layout_marginTop="18dp"
+                    android:textSize="14sp"/>
+
+                <!-- Rating -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Your rating"
+                    android:textSize="14sp"
+                    android:textColor="#555555"
+                    android:layout_marginTop="16dp"/>
+
+                <RatingBar
+                    android:id="@+id/ratingBar"
+                    android:numStars="5"
+                    android:stepSize="1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:progressTint="#FFC107"
+                    android:secondaryProgressTint="#E0E0E0"
+                    android:progressBackgroundTint="#E0E0E0"/>
+
+                <!-- Feedback -->
+                <EditText
+                    android:id="@+id/etFeedback"
+                    android:layout_width="match_parent"
+                    android:layout_height="120dp"
+                    android:hint="Write your feedback here..."
+                    android:background="@drawable/bg_input"
+                    android:padding="14dp"
+                    android:gravity="top"
+                    android:layout_marginTop="16dp"
+                    android:textSize="14sp"/>
+
+                <!-- Submit -->
+                <Button
+                    android:id="@+id/btnSubmit"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:text="Submit Feedback"
+                    android:textAllCaps="false"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/white"
+                    android:backgroundTint="@color/primary"
+                    android:layout_marginTop="20dp"/>
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+
+</RelativeLayout>

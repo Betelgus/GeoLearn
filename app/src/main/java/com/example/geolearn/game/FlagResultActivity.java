@@ -18,6 +18,7 @@ public class FlagResultActivity extends AppCompatActivity {
 
         // 1. Initialize Views
         TextView tvScoreFraction = findViewById(R.id.tvScoreFraction);
+        TextView tvResultSubtitle = findViewById(R.id.tvResultSubtitle); // Find the subtitle view
         TextView tvCorrect = findViewById(R.id.tvCorrect);
         TextView tvIncorrect = findViewById(R.id.tvIncorrect);
         TextView tvTime = findViewById(R.id.tvTime);
@@ -25,28 +26,31 @@ public class FlagResultActivity extends AppCompatActivity {
         Button btnBackToMenu = findViewById(R.id.btnBackToMenu);
 
         // 2. Get Data from Intent
-        // If "SCORE" is missing, default to 0. If "TOTAL" missing, default to 10.
         int score = getIntent().getIntExtra("SCORE", 0);
         int total = getIntent().getIntExtra("TOTAL_QUESTIONS", 10);
         String timeTaken = getIntent().getStringExtra("TIME_TAKEN");
 
         if (timeTaken == null) timeTaken = "--:--";
 
-        // 3. Calculate Stats (NO HARDCODING)
-        int correct = score;
-        int incorrect = total - score;
+        // 3. Set Wording according to Score
+        if (score >= 0 && score <= 2) {
+            tvResultSubtitle.setText("Learning starts with trying. You’re on the right path!");
+        } else if (score >= 3 && score <= 5) {
+            tvResultSubtitle.setText("Well done! Keep learning and improving.");
+        } else if (score >= 6 && score <= 8) {
+            tvResultSubtitle.setText("Awesome effort! Keep sharpening your skills.");
+        } else if (score >= 9 && score <= 10) {
+            tvResultSubtitle.setText("Outstanding work! You’re a quiz champion! 🏆");
+        }
 
         // 4. Set Data
         tvScoreFraction.setText(score + "/" + total);
-        tvCorrect.setText(String.valueOf(correct));   // Shows actual correct count
-        tvIncorrect.setText(String.valueOf(incorrect)); // Shows actual incorrect count
+        tvCorrect.setText(String.valueOf(score));
+        tvIncorrect.setText(String.valueOf(total - score));
         tvTime.setText(timeTaken);
 
         // Update progress bar
-        int progress = 0;
-        if (total > 0) {
-            progress = (score * 100) / total;
-        }
+        int progress = (total > 0) ? (score * 100) / total : 0;
         progressScore.setProgress(progress);
 
         btnBackToMenu.setOnClickListener(v -> {

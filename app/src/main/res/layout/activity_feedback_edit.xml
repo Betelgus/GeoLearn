@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F7FB">
+
+    <!-- Top Bar -->
+    <LinearLayout
+        android:id="@+id/topBar"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="16dp"
+        android:background="#FFFFFF"
+        android:elevation="4dp">
+
+        <ImageView
+            android:id="@+id/btnBack"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:src="?attr/homeAsUpIndicator"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            app:tint="#333333"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Edit Feedback"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#333333"
+            android:layout_marginStart="12dp"/>
+    </LinearLayout>
+
+    <!-- Content -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/topBar"
+        android:padding="18dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_card_soft"
+            android:padding="20dp"
+            android:elevation="4dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Update your feedback ✏️"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#222"/>
+
+            <!-- Rating -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Your rating"
+                android:textSize="14sp"
+                android:textColor="#555"
+                android:layout_marginTop="16dp"/>
+
+            <RatingBar
+                android:id="@+id/ratingBarEdit"
+                android:numStars="5"
+                android:stepSize="1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:progressTint="#FFC107"
+                android:secondaryProgressTint="#E0E0E0"
+                android:progressBackgroundTint="#E0E0E0"/>
+
+            <!-- Feedback text -->
+            <EditText
+                android:id="@+id/etFeedbackEdit"
+                android:layout_width="match_parent"
+                android:layout_height="120dp"
+                android:hint="Update your feedback..."
+                android:background="@drawable/bg_input"
+                android:padding="14dp"
+                android:gravity="top"
+                android:layout_marginTop="16dp"
+                android:textSize="14sp"/>
+
+            <!-- Buttons -->
+            <Button
+                android:id="@+id/btnUpdate"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:text="Update Feedback"
+                android:textAllCaps="false"
+                android:textStyle="bold"
+                android:textColor="@android:color/white"
+                android:backgroundTint="@color/primary"
+                android:layout_marginTop="20dp"/>
+
+            <Button
+                android:id="@+id/btnDelete"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="Delete Feedback"
+                android:textAllCaps="false"
+                android:textStyle="bold"
+                android:textColor="@android:color/white"
+                android:backgroundTint="#F44336"
+                android:layout_marginTop="12dp"/>
+
+        </LinearLayout>
+    </ScrollView>
+
+</RelativeLayout>

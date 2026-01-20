@@ -16,7 +16,7 @@ import com.example.geolearn.api.Country;
 import com.example.geolearn.api.Geoapi;
 
 import java.util.ArrayList;
-import java.util.Collections; // Import this for shuffling
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -29,7 +29,6 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class FlashcardActivity extends AppCompatActivity {
 
-    // Views
     private View cardFront, cardBack, cardContainer;
     private ImageView imgFlagFront;
     private TextView tvCountryName, tvCapital, tvRegion;
@@ -38,12 +37,9 @@ public class FlashcardActivity extends AppCompatActivity {
     private ImageView btnBack;
     private ProgressBar loadingProgressBar;
 
-    // Data
     private List<Country> countryList = new ArrayList<>();
     private int currentIndex = 0;
     private boolean isBackVisible = false;
-
-    // Bookmarks
     private Set<String> bookmarkedCountries = new HashSet<>();
 
     @Override
@@ -51,29 +47,22 @@ public class FlashcardActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_flashcard);
 
-        // 1. Initialize Views
         btnBack = findViewById(R.id.btnBack);
         cardContainer = findViewById(R.id.cardContainer);
         cardFront = findViewById(R.id.cardFront);
         cardBack = findViewById(R.id.cardBack);
-
         imgFlagFront = findViewById(R.id.imgFlagFront);
         tvCountryName = findViewById(R.id.tvCountryName);
         tvCapital = findViewById(R.id.tvCapital);
         tvRegion = findViewById(R.id.tvRegion);
-
         btnPrev = findViewById(R.id.btnPrev);
         btnNext = findViewById(R.id.btnNext);
         btnBookmark = findViewById(R.id.btnBookmark);
         loadingProgressBar = findViewById(R.id.loadingProgressBar);
 
-        // 2. Back Button Logic
         btnBack.setOnClickListener(v -> finish());
-
-        // 3. Card Flip Listener
         cardContainer.setOnClickListener(v -> flipCard());
 
-        // 4. Navigation Listeners
         btnPrev.setOnClickListener(v -> {
             if (currentIndex > 0) {
                 currentIndex--;
@@ -88,10 +77,8 @@ public class FlashcardActivity extends AppCompatActivity {
             }
         });
 
-        // 5. Bookmark Listener
         btnBookmark.setOnClickListener(v -> toggleBookmark());
 
-        // 6. Fetch Data
         fetchCountries();
     }
 
@@ -110,8 +97,6 @@ public class FlashcardActivity extends AppCompatActivity {
                 loadingProgressBar.setVisibility(View.GONE);
                 if (response.isSuccessful() && response.body() != null) {
                     countryList = response.body();
-
-                    // --- NEW: Shuffle the list to randomize order ---
                     Collections.shuffle(countryList);
 
                     if (!countryList.isEmpty()) {
@@ -132,7 +117,6 @@ public class FlashcardActivity extends AppCompatActivity {
     }
 
     private void updateCardUI() {
-        // Always reset to Front side when changing cards
         if (isBackVisible) {
             cardBack.setVisibility(View.GONE);
             cardFront.setVisibility(View.VISIBLE);
@@ -141,14 +125,14 @@ public class FlashcardActivity extends AppCompatActivity {
 
         Country current = countryList.get(currentIndex);
 
-        // Update Front (Flag)
+        // FIX: Removed R.drawable.ic_launcher_background and used a simple color placeholder
         Glide.with(this)
                 .load(current.flags.png)
                 .centerCrop()
-                .placeholder(R.drawable.ic_launcher_background)
+                .placeholder(android.R.color.darker_gray) // Standard gray placeholder
+                .error(android.R.color.holo_red_light)    // Show red if the image fails to load
                 .into(imgFlagFront);
 
-        // Update Back (Details)
         tvCountryName.setText(current.name.common);
 
         if (current.capital != null && !current.capital.isEmpty()) {
@@ -159,24 +143,19 @@ public class FlashcardActivity extends AppCompatActivity {
 
         tvRegion.setText(current.region);
 
-        // Update Navigation Buttons State
         btnPrev.setEnabled(currentIndex > 0);
         btnNext.setEnabled(currentIndex < countryList.size() - 1);
-
         btnPrev.setAlpha(currentIndex > 0 ? 1.0f : 0.5f);
         btnNext.setAlpha(currentIndex < countryList.size() - 1 ? 1.0f : 0.5f);
 
-        // Update Bookmark Icon
         updateBookmarkIcon();
     }
 
     private void flipCard() {
         if (isBackVisible) {
-            // Show Front
             cardBack.setVisibility(View.GONE);
             cardFront.setVisibility(View.VISIBLE);
         } else {
-            // Show Back
             cardFront.setVisibility(View.GONE);
             cardBack.setVisibility(View.VISIBLE);
         }
@@ -185,14 +164,11 @@ public class FlashcardActivity extends AppCompatActivity {
 
     private void toggleBookmark() {
         if (countryList.isEmpty()) return;
-
         String countryName = countryList.get(currentIndex).name.common;
         if (bookmarkedCountries.contains(countryName)) {
             bookmarkedCountries.remove(countryName);
-            Toast.makeText(this, "Removed from Bookmarks", Toast.LENGTH_SHORT).show();
         } else {
             bookmarkedCountries.add(countryName);
-            Toast.makeText(this, "Bookmarked!", Toast.LENGTH_SHORT).show();
         }
         updateBookmarkIcon();
     }
@@ -200,13 +176,11 @@ public class FlashcardActivity extends AppCompatActivity {
     private void updateBookmarkIcon() {
         if (countryList.isEmpty()) return;
         String countryName = countryList.get(currentIndex).name.common;
-
         if (bookmarkedCountries.contains(countryName)) {
+            // Ensure you have these drawables in your res/drawable folder
             btnBookmark.setImageResource(R.drawable.ic_star_filled);
-            btnBookmark.setColorFilter(null);
         } else {
             btnBookmark.setImageResource(R.drawable.ic_star_outline);
-            btnBookmark.setColorFilter(null);
         }
     }
 }

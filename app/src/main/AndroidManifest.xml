@@ -13,18 +13,23 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Geolearn">
-
+        <activity
+            android:name=".home.FeedbackEditActivity"
+            android:exported="false" />
+        <activity
+            android:name=".home.FeedbackUserActivity"
+            android:exported="false" />
         <activity
             android:name=".home.SplashActivity"
             android:exported="true"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar"> <intent-filter>
-            <action android:name="android.intent.action.MAIN" />
-            <category android:name="android.intent.category.LAUNCHER" />
-        </intent-filter>
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
-
         <activity android:name=".home.GuestMainMenuActivity" />
-
         <activity android:name=".auth.LoginActivity" />
         <activity android:name=".auth.RegisterActivity" />
         <activity android:name=".home.MainMenuActivity" />
@@ -40,8 +45,6 @@
         <activity android:name=".game.FlagResultActivity" />
         <activity android:name=".home.FeedbackActivity" />
         <activity android:name=".home.AboutActivity" />
-
-
     </application>
 
 </manifest>
