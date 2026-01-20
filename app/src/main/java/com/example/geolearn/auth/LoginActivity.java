@@ -67,7 +67,7 @@ public class LoginActivity extends AppCompatActivity {
 
         // Handle Guest Mode
         tvGuest.setOnClickListener(v -> {
-            UserSession.setGuestMode(this, true); //
+            UserSession.setGuestMode(this, true);
             Toast.makeText(this, "Welcome, Guest!", Toast.LENGTH_SHORT).show();
             navigateToHome();
         });
@@ -97,7 +97,7 @@ public class LoginActivity extends AppCompatActivity {
                         FirebaseUser user = mAuth.getCurrentUser();
 
                         if (user != null) {
-                            // 4. Auth successful, now fetch extra data (Name) from Firestore
+                            // 4. Auth successful, now fetch extra data from Firestore
                             fetchUserFromFirestore(user.getUid());
                         }
                     } else {
@@ -111,7 +111,6 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void fetchUserFromFirestore(String uid) {
-        // Access the "users" collection defined in your RegisterActivity
         db.collection("users").document(uid).get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
@@ -119,20 +118,21 @@ public class LoginActivity extends AppCompatActivity {
                         if (document != null && document.exists()) {
 
                             // 5. Retrieve fields stored during registration
-                            String name = document.getString("name"); //
+                            String username = document.getString("username");
                             String email = document.getString("email");
+                            Long ageLong = document.getLong("age");
+                            int age = (ageLong != null) ? ageLong.intValue() : 0;
 
-                            // 6. Save to Local SQLite (Room) so app works offline
-                            saveUserLocally(uid, name, email);
+                            // 6. Save to Local SQLite (Room)
+                            saveUserLocally(uid, username, email, age);
 
                             // 7. Complete Login
                             UserSession.setGuestMode(LoginActivity.this, false);
-                            Toast.makeText(LoginActivity.this, "Welcome back, " + name + "!", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(LoginActivity.this, "Welcome back, " + username + "!", Toast.LENGTH_SHORT).show();
                             navigateToHome();
 
                         } else {
                             Log.e(TAG, "No user document found in Firestore");
-                            // Allow login even if Firestore data is missing, but warn
                             UserSession.setGuestMode(LoginActivity.this, false);
                             navigateToHome();
                         }
@@ -144,12 +144,11 @@ public class LoginActivity extends AppCompatActivity {
                 });
     }
 
-    private void saveUserLocally(String uid, String name, String email) {
-        // Run database operations in a background thread to avoid blocking UI
+    private void saveUserLocally(String uid, String username, String email, int age) {
         new Thread(() -> {
             try {
-                User localUser = new User(uid, name, email);
-                localDb.userDao().insertUser(localUser); //
+                User localUser = new User(uid, username, email, age);
+                localDb.userDao().insertUser(localUser);
                 Log.d(TAG, "User synced to local SQLite DB");
             } catch (Exception e) {
                 Log.e(TAG, "Error saving user locally: " + e.getMessage());
