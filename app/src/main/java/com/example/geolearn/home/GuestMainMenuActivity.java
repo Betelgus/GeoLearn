@@ -45,10 +45,7 @@ public class GuestMainMenuActivity extends AppCompatActivity {
         navigationView.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_login) {
-                redirectToLogin("Please login to access full features");
-            } else if (id == R.id.nav_settings) {
-                // Assuming you have a SettingsActivity, or redirect to login if locked
-                // startActivity(new Intent(this, SettingsActivity.class));
+                startActivity(new Intent(this, LoginActivity.class));
             } else if (id == R.id.nav_about) {
                 // NEW CODE
                 startActivity(new Intent(this, AboutActivity.class));
@@ -62,7 +59,7 @@ public class GuestMainMenuActivity extends AppCompatActivity {
         // --- GUEST CARD LISTENERS ---
 
         // Locked features prompt login
-        findViewById(R.id.cardGuestDashboard).setOnClickListener(v -> redirectToLogin("Login to see dashboard"));
+        findViewById(R.id.btnCreateAcc).setOnClickListener(v -> redirectToLogin("Login to see dashboard"));
         findViewById(R.id.cardLockedAnalysis).setOnClickListener(v -> redirectToLogin("Login to see analysis"));
         findViewById(R.id.cardLockedBookmarks).setOnClickListener(v -> redirectToLogin("Login to use bookmarks"));
 
