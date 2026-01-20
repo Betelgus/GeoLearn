@@ -6,18 +6,17 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.geolearn.home.MainMenuActivity;
 import com.example.geolearn.R;
 import com.example.geolearn.database.AppDatabase;
 import com.example.geolearn.database.entities.User;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
-
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.HashMap;
@@ -30,6 +29,8 @@ public class RegisterActivity extends AppCompatActivity {
     private TextInputEditText etUsername, etAge, etEmail, etPassword;
     private CheckBox cbTerms;
     private Button btnSignUp;
+
+    // Firebase & Database
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
     private AppDatabase localDb;
@@ -42,11 +43,9 @@ public class RegisterActivity extends AppCompatActivity {
         // Initialize Firebase
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
-
-        // Initialize Local SQLite Database (Room)
         localDb = AppDatabase.getInstance(this);
 
-        // 1. Initialize Views
+        // Initialize Views
         etUsername = findViewById(R.id.etUsername);
         etAge = findViewById(R.id.etAge);
         etEmail = findViewById(R.id.etEmail);
@@ -54,17 +53,20 @@ public class RegisterActivity extends AppCompatActivity {
         cbTerms = findViewById(R.id.cbTerms);
         btnSignUp = findViewById(R.id.btnSignUp);
         TextView tvLogin = findViewById(R.id.tvLogin);
+        ImageView btnBack = findViewById(R.id.btnBack); // <-- Back Button
 
-        // 2. Handle Sign Up Button
+        // 1. Handle Sign Up
         btnSignUp.setOnClickListener(v -> {
-            Log.d(TAG, "Sign Up button clicked");
             if (validateRegistration()) {
                 registerUser();
             }
         });
 
-        // 3. Handle "Already have an account?" Click
+        // 2. Handle "Sign In" Text Click (Go back to login)
         tvLogin.setOnClickListener(v -> finish());
+
+        // 3. Handle Back Arrow Click (Go back to login)
+        btnBack.setOnClickListener(v -> finish());
     }
 
     private boolean validateRegistration() {
@@ -115,37 +117,35 @@ public class RegisterActivity extends AppCompatActivity {
         btnSignUp.setEnabled(false);
         Toast.makeText(this, "Registering...", Toast.LENGTH_SHORT).show();
 
+        // Create User in Firebase Auth
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful() && mAuth.getCurrentUser() != null) {
-                        Log.d(TAG, "FirebaseAuth: User created successfully");
+                        Log.d(TAG, "FirebaseAuth: Success");
                         String userId = mAuth.getCurrentUser().getUid();
 
-                        // 1. Save to Firestore (Remote)
+                        // Create User Map
                         Map<String, Object> userMap = new HashMap<>();
-                        userMap.put("username", username);
+                        userMap.put("username", username); // Matches "username" in LoginActivity lookup
                         userMap.put("age", age);
                         userMap.put("email", email);
 
+                        // Save to Firestore
                         db.collection("users").document(userId).set(userMap)
                                 .addOnCompleteListener(dbTask -> {
                                     if (dbTask.isSuccessful()) {
-                                        Log.d(TAG, "Firestore: User data saved");
-                                        // 2. Save to SQLite (Local)
+                                        Log.d(TAG, "Firestore: Success");
                                         saveUserLocally(userId, username, email, age);
                                         completeRegistration();
                                     } else {
                                         btnSignUp.setEnabled(true);
-                                        String error = dbTask.getException() != null ? dbTask.getException().getMessage() : "Unknown error";
-                                        Log.e(TAG, "Firestore Error: " + error);
-                                        Toast.makeText(RegisterActivity.this, "Database error: " + error, Toast.LENGTH_LONG).show();
+                                        String error = dbTask.getException() != null ? dbTask.getException().getMessage() : "Database Error";
+                                        Toast.makeText(RegisterActivity.this, "Error saving data: " + error, Toast.LENGTH_LONG).show();
                                     }
                                 });
                     } else {
                         btnSignUp.setEnabled(true);
-                        String error = task.getException() != null ? task.getException().getMessage() : "Unknown error";
-                        Log.e(TAG, "FirebaseAuth Error: " + error);
-
+                        String error = task.getException() != null ? task.getException().getMessage() : "Auth Error";
                         if (task.getException() instanceof FirebaseAuthUserCollisionException) {
                             Toast.makeText(RegisterActivity.this, "Email already registered.", Toast.LENGTH_LONG).show();
                         } else {
@@ -156,18 +156,21 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void saveUserLocally(String uid, String username, String email, int age) {
-        try {
-            User localUser = new User(uid, username, email, age);
-            localDb.userDao().insertUser(localUser);
-            Log.d(TAG, "SQLite: User saved locally");
-        } catch (Exception e) {
-            Log.e(TAG, "SQLite Error: " + e.getMessage());
-        }
+        new Thread(() -> {
+            try {
+                User localUser = new User(uid, username, email, age);
+                localDb.userDao().insertUser(localUser);
+                Log.d(TAG, "SQLite: User saved locally");
+            } catch (Exception e) {
+                Log.e(TAG, "SQLite Error: " + e.getMessage());
+            }
+        }).start();
     }
 
     private void completeRegistration() {
         UserSession.setGuestMode(this, false);
         Toast.makeText(this, "Registration Successful!", Toast.LENGTH_SHORT).show();
+
         Intent intent = new Intent(this, LoginActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);

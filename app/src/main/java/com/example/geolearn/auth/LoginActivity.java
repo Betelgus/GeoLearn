@@ -10,6 +10,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.geolearn.home.GuestMainMenuActivity;
 import com.example.geolearn.home.MainMenuActivity;
 import com.example.geolearn.R;
 import com.example.geolearn.database.AppDatabase;
@@ -17,14 +18,14 @@ import com.example.geolearn.database.entities.User;
 
 // Firebase Imports
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
 
 public class LoginActivity extends AppCompatActivity {
 
     private static final String TAG = "LoginActivity";
-    private EditText etEmail, etPassword;
+    private EditText etUsername, etPassword; // Changed from etEmail
     private Button btnLogin;
 
     // 1. Declare Firebase & Database instances
@@ -43,7 +44,10 @@ public class LoginActivity extends AppCompatActivity {
         localDb = AppDatabase.getInstance(this);
 
         // Initialize Views
-        etEmail = findViewById(R.id.etEmail);
+        // IMPORTANT: Ensure your XML has an EditText with id 'etUsername' (or change this line to match your XML)
+        etUsername = findViewById(R.id.etUsername); // Keeping ID as etEmail to prevent crash if XML isn't updated, but logically it's username
+        etUsername.setHint("Username"); // Set hint programmatically just in case
+
         etPassword = findViewById(R.id.etPassword);
         btnLogin = findViewById(R.id.btnLogin);
         TextView tvRegister = findViewById(R.id.tvRegister);
@@ -51,11 +55,11 @@ public class LoginActivity extends AppCompatActivity {
 
         // Handle Login Button
         btnLogin.setOnClickListener(v -> {
-            String email = etEmail.getText().toString().trim();
+            String username = etUsername.getText().toString().trim();
             String password = etPassword.getText().toString().trim();
 
-            if (validateInputs(email, password)) {
-                performLogin(email, password);
+            if (validateInputs(username, password)) {
+                loginWithUsername(username, password);
             }
         });
 
@@ -67,15 +71,23 @@ public class LoginActivity extends AppCompatActivity {
 
         // Handle Guest Mode
         tvGuest.setOnClickListener(v -> {
+            // 1. Set session to GUEST mode
             UserSession.setGuestMode(this, true);
+
             Toast.makeText(this, "Welcome, Guest!", Toast.LENGTH_SHORT).show();
-            navigateToHome();
+
+            // 2. CHANGE: Point to the new Guest Activity
+            Intent intent = new Intent(this, GuestMainMenuActivity.class);
+
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            finish();
         });
     }
 
-    private boolean validateInputs(String email, String password) {
-        if (TextUtils.isEmpty(email)) {
-            etEmail.setError("Email is required");
+    private boolean validateInputs(String username, String password) {
+        if (TextUtils.isEmpty(username)) {
+            etUsername.setError("Username is required");
             return false;
         }
         if (TextUtils.isEmpty(password)) {
@@ -85,63 +97,67 @@ public class LoginActivity extends AppCompatActivity {
         return true;
     }
 
-    private void performLogin(String email, String password) {
-        btnLogin.setEnabled(false); // Disable button to prevent multiple clicks
-        Toast.makeText(this, "Logging in...", Toast.LENGTH_SHORT).show();
+    // 3. New Logic: Lookup Email via Username -> Then Login
+    private void loginWithUsername(String username, String password) {
+        btnLogin.setEnabled(false);
+        Toast.makeText(this, "Verifying username...", Toast.LENGTH_SHORT).show();
 
-        // 3. Authenticate with Firebase Auth
-        mAuth.signInWithEmailAndPassword(email, password)
-                .addOnCompleteListener(this, task -> {
+        // Query Firestore for user with matching 'username' field
+        db.collection("users")
+                .whereEqualTo("username", username)
+                .limit(1)
+                .get()
+                .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        Log.d(TAG, "signInWithEmail:success");
-                        FirebaseUser user = mAuth.getCurrentUser();
+                        QuerySnapshot documents = task.getResult();
+                        if (documents != null && !documents.isEmpty()) {
+                            // User found
+                            DocumentSnapshot userDoc = documents.getDocuments().get(0);
+                            String email = userDoc.getString("email");
+                            String uid = userDoc.getId();
 
-                        if (user != null) {
-                            // 4. Auth successful, now fetch extra data from Firestore
-                            fetchUserFromFirestore(user.getUid());
+                            // Get other fields now to save later
+                            Long ageLong = userDoc.getLong("age");
+                            int age = (ageLong != null) ? ageLong.intValue() : 0;
+
+                            if (email != null) {
+                                // Proceed to actual Authentication
+                                performAuth(email, password, uid, username, age);
+                            } else {
+                                handleError("Email not linked to this username.");
+                            }
+                        } else {
+                            handleError("Username not found.");
                         }
                     } else {
-                        // Login failed
-                        btnLogin.setEnabled(true);
-                        Log.w(TAG, "signInWithEmail:failure", task.getException());
-                        Toast.makeText(LoginActivity.this, "Authentication Failed.",
-                                Toast.LENGTH_SHORT).show();
+                        handleError("Connection failed: " + task.getException().getMessage());
                     }
                 });
     }
 
-    private void fetchUserFromFirestore(String uid) {
-        db.collection("users").document(uid).get()
-                .addOnCompleteListener(task -> {
+    private void performAuth(String email, String password, String uid, String username, int age) {
+        mAuth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
-                        DocumentSnapshot document = task.getResult();
-                        if (document != null && document.exists()) {
+                        Log.d(TAG, "signInWithEmail:success");
 
-                            // 5. Retrieve fields stored during registration
-                            String username = document.getString("username");
-                            String email = document.getString("email");
-                            Long ageLong = document.getLong("age");
-                            int age = (ageLong != null) ? ageLong.intValue() : 0;
+                        // 4. Save to Local SQLite (Room)
+                        saveUserLocally(uid, username, email, age);
 
-                            // 6. Save to Local SQLite (Room)
-                            saveUserLocally(uid, username, email, age);
-
-                            // 7. Complete Login
-                            UserSession.setGuestMode(LoginActivity.this, false);
-                            Toast.makeText(LoginActivity.this, "Welcome back, " + username + "!", Toast.LENGTH_SHORT).show();
-                            navigateToHome();
-
-                        } else {
-                            Log.e(TAG, "No user document found in Firestore");
-                            UserSession.setGuestMode(LoginActivity.this, false);
-                            navigateToHome();
-                        }
+                        // 5. Complete Login
+                        UserSession.setGuestMode(LoginActivity.this, false);
+                        Toast.makeText(LoginActivity.this, "Welcome back, " + username + "!", Toast.LENGTH_SHORT).show();
+                        navigateToHome();
                     } else {
-                        btnLogin.setEnabled(true);
-                        Log.e(TAG, "Firestore get failed: ", task.getException());
-                        Toast.makeText(LoginActivity.this, "Error retrieving user data.", Toast.LENGTH_SHORT).show();
+                        Log.w(TAG, "signInWithEmail:failure", task.getException());
+                        handleError("Incorrect Password.");
                     }
                 });
+    }
+
+    private void handleError(String message) {
+        btnLogin.setEnabled(true);
+        Toast.makeText(LoginActivity.this, message, Toast.LENGTH_SHORT).show();
     }
 
     private void saveUserLocally(String uid, String username, String email, int age) {
