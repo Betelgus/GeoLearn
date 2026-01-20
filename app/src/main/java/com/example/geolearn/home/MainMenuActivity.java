@@ -12,6 +12,12 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
+// --- Imports for Logout Logic ---
+import com.example.geolearn.auth.LoginActivity;
+import com.example.geolearn.auth.UserSession;
+import com.google.firebase.auth.FirebaseAuth;
+// --------------------------------
+
 import com.example.geolearn.profile.BookmarksActivity;
 import com.example.geolearn.game.FlashcardActivity;
 import com.example.geolearn.game.GameAnalysisActivity;
@@ -62,10 +68,11 @@ public class MainMenuActivity extends AppCompatActivity implements NavigationVie
         findViewById(R.id.cardBookmarks).setOnClickListener(v ->
                 startActivity(new Intent(this, BookmarksActivity.class)));
 
-        // 4. --- NEW FEEDBACK LISTENER ---
+        // 4. --- FEEDBACK LISTENER ---
         findViewById(R.id.cardFeedback).setOnClickListener(v -> {
+            // Optional: Check if guest before allowing feedback
             Intent intent = new Intent(MainMenuActivity.this, FeedbackActivity.class);
-            intent.putExtra("IS_GUEST", false); // Registered User -> Can Add Feedback
+            intent.putExtra("IS_GUEST", UserSession.isGuestMode(this));
             startActivity(intent);
         });
     }
@@ -104,18 +111,35 @@ public class MainMenuActivity extends AppCompatActivity implements NavigationVie
         int id = item.getItemId();
 
         if (id == R.id.nav_home) {
-            // Already here
+            // Already on home screen
         } else if (id == R.id.nav_settings) {
             startActivity(new Intent(this, SettingsActivity.class));
         } else if (id == R.id.nav_about) {
-            // NEW CODE
             startActivity(new Intent(this, AboutActivity.class));
         } else if (id == R.id.nav_logout) {
-            finish();
+            performLogout(); // <--- Call the logout method
         }
 
         drawerLayout.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    // --- LOGOUT LOGIC ---
+    private void performLogout() {
+        // 1. Clear Local Session (SharedPreferences)
+        UserSession.clear(this);
+
+        // 2. Sign out from Firebase Auth
+        FirebaseAuth.getInstance().signOut();
+
+        // 3. Navigate back to LoginActivity
+        Intent intent = new Intent(this, LoginActivity.class);
+        // FLAG_ACTIVITY_CLEAR_TASK clears the existing activity stack so the user cannot press "Back" to return here.
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+
+        // 4. Close this activity
+        finish();
     }
 
     @Override
