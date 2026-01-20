@@ -45,6 +45,10 @@
         <activity android:name=".game.FlagResultActivity" />
         <activity android:name=".home.FeedbackActivity" />
         <activity android:name=".home.AboutActivity" />
+        <activity
+            android:name=".home.FeedbackHistory"
+            android:exported="true"/>
+
     </application>
 
 </manifest>

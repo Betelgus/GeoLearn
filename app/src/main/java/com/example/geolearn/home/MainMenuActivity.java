@@ -112,12 +112,14 @@ public class MainMenuActivity extends AppCompatActivity implements NavigationVie
 
         if (id == R.id.nav_home) {
             // Already on home screen
+        } else if (id == R.id.nav_feedback) {
+            startActivity(new Intent(this, FeedbackHistory.class));
         } else if (id == R.id.nav_settings) {
             startActivity(new Intent(this, SettingsActivity.class));
         } else if (id == R.id.nav_about) {
             startActivity(new Intent(this, AboutActivity.class));
         } else if (id == R.id.nav_logout) {
-            performLogout(); // <--- Call the logout method
+            performLogout(); // Call the logout method
         }
 
         drawerLayout.closeDrawer(GravityCompat.START);
