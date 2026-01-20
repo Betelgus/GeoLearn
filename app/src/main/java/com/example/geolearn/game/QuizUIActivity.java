@@ -265,28 +265,21 @@ public class QuizUIActivity extends AppCompatActivity {
         btn4.setBackgroundColor(Color.TRANSPARENT); btn4.setTextColor(defaultColor);
     }
 
-    // --- UPDATED: Calculate Time and Pass to Result Activity ---
-    // ... inside QuizUIActivity.java ...
-
     private void finishGame() {
         if (timer != null) timer.cancel();
 
-        // 1. Calculate Time Elapsed
         long endTime = System.currentTimeMillis();
         long timeElapsed = endTime - quizStartTime;
 
-        // 2. Format to MM:SS
         int seconds = (int) (timeElapsed / 1000) % 60;
         int minutes = (int) ((timeElapsed / (1000 * 60)) % 60);
         String formattedTime = String.format("%02d:%02d", minutes, seconds);
 
-        // 3. Send to Result Screen
         Intent intent = new Intent(this, QuizResultActivity.class);
         intent.putExtra("SCORE", score);
         intent.putExtra("TOTAL_QUESTIONS", questionList.size());
-
-        // IMPORTANT: Sending the time string here
         intent.putExtra("TIME_TAKEN", formattedTime);
+        intent.putExtra("QUIZ_TYPE", "trivia"); // Add this line
 
         startActivity(intent);
         finish();

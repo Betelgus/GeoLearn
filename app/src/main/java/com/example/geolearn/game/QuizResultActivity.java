@@ -2,15 +2,26 @@ package com.example.geolearn.game;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.geolearn.R;
 import com.example.geolearn.home.MainMenuActivity;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class QuizResultActivity extends AppCompatActivity {
+
+    private static final String TAG = "QuizResultActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -19,7 +30,6 @@ public class QuizResultActivity extends AppCompatActivity {
 
         // 1. Initialize Views
         TextView tvScoreFraction = findViewById(R.id.tvScoreFraction);
-        TextView tvResultSubtitle = findViewById(R.id.tvResultSubtitle); // Link to XML ID
         TextView tvCorrect = findViewById(R.id.tvCorrect);
         TextView tvIncorrect = findViewById(R.id.tvIncorrect);
         TextView tvTime = findViewById(R.id.tvTime);
@@ -30,24 +40,20 @@ public class QuizResultActivity extends AppCompatActivity {
         int score = getIntent().getIntExtra("SCORE", 0);
         int totalQuestions = getIntent().getIntExtra("TOTAL_QUESTIONS", 10);
         String timeTaken = getIntent().getStringExtra("TIME_TAKEN");
+        String quizType = getIntent().getStringExtra("QUIZ_TYPE"); 
 
+        // Safety Check: If time is missing, show a dash
         if (timeTaken == null) timeTaken = "--:--";
+        if (quizType == null) quizType = "unknown"; // Default quiz type
 
-        // 3. SET THE WORDING BASED ON SCORE
-        if (score >= 0 && score <= 2) {
-            tvResultSubtitle.setText("Good try! Every mistake helps you learn more.");
-        } else if (score >= 3 && score <= 5) {
-            tvResultSubtitle.setText("Good job! You’re getting there — keep going!");
-        } else if (score >= 6 && score <= 8) {
-            tvResultSubtitle.setText("Well done! Your hard work is paying off.");
-        } else if (score >= 9 && score <= 10) {
-            tvResultSubtitle.setText("Excellent! You nailed the quiz! 🎉");
-        }
+        // 3. CALCULATE Correct/Incorrect
+        int correct = score;
+        int incorrect = totalQuestions - score;
 
         // 4. Set Data to Views
         tvScoreFraction.setText(score + "/" + totalQuestions);
-        tvCorrect.setText(String.valueOf(score));
-        tvIncorrect.setText(String.valueOf(totalQuestions - score));
+        tvCorrect.setText(String.valueOf(correct));
+        tvIncorrect.setText(String.valueOf(incorrect));
         tvTime.setText(timeTaken);
 
         // 5. Update Circular Progress Bar
@@ -57,12 +63,45 @@ public class QuizResultActivity extends AppCompatActivity {
         }
         progressScore.setProgress(percentage);
 
-        // 6. Back to Menu
+        // 6. Save Score to Firestore
+        saveScoreToFirestore(score, totalQuestions, timeTaken, quizType);
+
+        // 7. Back to Menu
         btnBackToMenu.setOnClickListener(v -> {
             Intent intent = new Intent(QuizResultActivity.this, MainMenuActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
             finish();
         });
+    }
+
+    private void saveScoreToFirestore(int score, int totalQuestions, String timeTaken, String quizType) {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            String userId = currentUser.getUid();
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+            // Create a new result entry
+            Map<String, Object> quizResult = new HashMap<>();
+            quizResult.put("userId", userId);
+            quizResult.put("quizType", quizType);
+            quizResult.put("score", score);
+            quizResult.put("totalQuestions", totalQuestions);
+            quizResult.put("timeTaken", timeTaken);
+            quizResult.put("timestamp", System.currentTimeMillis());
+
+            db.collection("scores")
+                    .add(quizResult)
+                    .addOnSuccessListener(documentReference -> {
+                        Log.d(TAG, "Quiz result saved to Firestore with ID: " + documentReference.getId());
+                        Toast.makeText(QuizResultActivity.this, "Score saved!", Toast.LENGTH_SHORT).show();
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.w(TAG, "Error saving quiz result", e);
+                        Toast.makeText(QuizResultActivity.this, "Failed to save score.", Toast.LENGTH_SHORT).show();
+                    });
+        } else {
+            Log.d(TAG, "User not logged in. Score not saved.");
+        }
     }
 }
