@@ -10,12 +10,14 @@ public class User {
     @NonNull
     public String uid;
     
-    public String name;
+    public String username;
     public String email;
+    public int age;
 
-    public User(@NonNull String uid, String name, String email) {
+    public User(@NonNull String uid, String username, String email, int age) {
         this.uid = uid;
-        this.name = name;
+        this.username = username;
         this.email = email;
+        this.age = age;
     }
 }

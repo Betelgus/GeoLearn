@@ -4,11 +4,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.EditText;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
@@ -25,15 +22,15 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class RegisterActivity extends AppCompatActivity {
 
     private static final String TAG = "RegisterActivity";
-    private TextInputEditText etName, etEmail, etPassword;
+    private TextInputEditText etUsername, etAge, etEmail, etPassword;
     private CheckBox cbTerms;
     private Button btnSignUp;
     private FirebaseAuth mAuth;
-    // Change from DatabaseReference to FirebaseFirestore
     private FirebaseFirestore db;
     private AppDatabase localDb;
 
@@ -44,14 +41,14 @@ public class RegisterActivity extends AppCompatActivity {
 
         // Initialize Firebase
         mAuth = FirebaseAuth.getInstance();
-        // Initialize FirebaseFirestore
         db = FirebaseFirestore.getInstance();
 
         // Initialize Local SQLite Database (Room)
         localDb = AppDatabase.getInstance(this);
 
         // 1. Initialize Views
-        etName = findViewById(R.id.etFullName);
+        etUsername = findViewById(R.id.etUsername);
+        etAge = findViewById(R.id.etAge);
         etEmail = findViewById(R.id.etEmail);
         etPassword = findViewById(R.id.etPassword);
         cbTerms = findViewById(R.id.cbTerms);
@@ -67,19 +64,23 @@ public class RegisterActivity extends AppCompatActivity {
         });
 
         // 3. Handle "Already have an account?" Click
-        tvLogin.setOnClickListener(v -> {
-            finish();
-        });
+        tvLogin.setOnClickListener(v -> finish());
     }
 
     private boolean validateRegistration() {
-        String name = etName.getText().toString().trim();
-        String email = etEmail.getText().toString().trim();
-        String password = etPassword.getText().toString().trim();
+        String username = Objects.requireNonNull(etUsername.getText()).toString().trim();
+        String ageStr = Objects.requireNonNull(etAge.getText()).toString().trim();
+        String email = Objects.requireNonNull(etEmail.getText()).toString().trim();
+        String password = Objects.requireNonNull(etPassword.getText()).toString().trim();
 
-        if (TextUtils.isEmpty(name)) {
-            etName.setError("Name is required");
-            etName.requestFocus();
+        if (TextUtils.isEmpty(username)) {
+            etUsername.setError("Username is required");
+            etUsername.requestFocus();
+            return false;
+        }
+        if (TextUtils.isEmpty(ageStr)) {
+            etAge.setError("Age is required");
+            etAge.requestFocus();
             return false;
         }
         if (TextUtils.isEmpty(email)) {
@@ -105,31 +106,33 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void registerUser() {
-        String name = etName.getText().toString().trim();
-        String email = etEmail.getText().toString().trim();
-        String password = etPassword.getText().toString().trim();
+        String username = Objects.requireNonNull(etUsername.getText()).toString().trim();
+        String ageStr = Objects.requireNonNull(etAge.getText()).toString().trim();
+        int age = Integer.parseInt(ageStr);
+        String email = Objects.requireNonNull(etEmail.getText()).toString().trim();
+        String password = Objects.requireNonNull(etPassword.getText()).toString().trim();
 
         btnSignUp.setEnabled(false);
         Toast.makeText(this, "Registering...", Toast.LENGTH_SHORT).show();
 
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
-                    if (task.isSuccessful()) {
+                    if (task.isSuccessful() && mAuth.getCurrentUser() != null) {
                         Log.d(TAG, "FirebaseAuth: User created successfully");
                         String userId = mAuth.getCurrentUser().getUid();
 
                         // 1. Save to Firestore (Remote)
                         Map<String, Object> userMap = new HashMap<>();
-                        userMap.put("name", name);
+                        userMap.put("username", username);
+                        userMap.put("age", age);
                         userMap.put("email", email);
 
-                        // Use db.collection().document().set() for Firestore
                         db.collection("users").document(userId).set(userMap)
                                 .addOnCompleteListener(dbTask -> {
                                     if (dbTask.isSuccessful()) {
                                         Log.d(TAG, "Firestore: User data saved");
                                         // 2. Save to SQLite (Local)
-                                        saveUserLocally(userId, name, email);
+                                        saveUserLocally(userId, username, email, age);
                                         completeRegistration();
                                     } else {
                                         btnSignUp.setEnabled(true);
@@ -152,9 +155,9 @@ public class RegisterActivity extends AppCompatActivity {
                 });
     }
 
-    private void saveUserLocally(String uid, String name, String email) {
+    private void saveUserLocally(String uid, String username, String email, int age) {
         try {
-            User localUser = new User(uid, name, email);
+            User localUser = new User(uid, username, email, age);
             localDb.userDao().insertUser(localUser);
             Log.d(TAG, "SQLite: User saved locally");
         } catch (Exception e) {
@@ -165,7 +168,7 @@ public class RegisterActivity extends AppCompatActivity {
     private void completeRegistration() {
         UserSession.setGuestMode(this, false);
         Toast.makeText(this, "Registration Successful!", Toast.LENGTH_SHORT).show();
-        Intent intent = new Intent(this, MainMenuActivity.class);
+        Intent intent = new Intent(this, LoginActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
