@@ -1,5 +1,6 @@
 package com.example.geolearn.profile;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
@@ -24,11 +25,22 @@ public class SettingsActivity extends AppCompatActivity {
         // 1. Back Button
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
-        // 2. Account Actions (Dummy)
-        findViewById(R.id.rowEditProfile).setOnClickListener(v ->
-                Toast.makeText(this, "Edit Profile", Toast.LENGTH_SHORT).show());
-        findViewById(R.id.rowChangePassword).setOnClickListener(v ->
-                Toast.makeText(this, "Change Password", Toast.LENGTH_SHORT).show());
+        // 2. Account Actions
+        // Edit Profile Listener
+        findViewById(R.id.rowEditProfile).setOnClickListener(v -> {
+            Intent intent = new Intent(SettingsActivity.this, EditProfileActivity.class);
+            // Optional: Pass current data so the fields are pre-filled
+            intent.putExtra("current_username", "Username");
+            intent.putExtra("current_email", "email@gmail.com");
+            intent.putExtra("current_age", "age");
+            startActivity(intent);
+        });
+
+        // Change Password Listener (Moved outside to fix nesting and variable conflict)
+        findViewById(R.id.rowChangePassword).setOnClickListener(v -> {
+            Intent intent = new Intent(SettingsActivity.this, EditPasswordActivity.class);
+            startActivity(intent);
+        });
 
         // -------------------------------------------------------------
         // 3. PREFERENCES
