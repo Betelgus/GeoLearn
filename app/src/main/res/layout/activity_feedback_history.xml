@@ -56,14 +56,20 @@
                 android:layout_marginBottom="16dp">
 
                 <!-- Small Edit Button -->
-                <ImageView
+                <!-- Small Edit Button as Text -->
+                <TextView
                     android:id="@+id/btnEdit"
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_alignParentEnd="true"
-                    android:src="@android:drawable/ic_menu_edit"
+                    android:text="✏️"
+                    android:textSize="18sp"
+                    android:gravity="center"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    app:tint="@color/primary"/>
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:textColor="@color/primary"/>
+
 
                 <!-- Rating -->
                 <RatingBar
