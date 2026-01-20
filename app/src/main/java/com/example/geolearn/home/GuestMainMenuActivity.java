@@ -45,6 +45,7 @@ public class GuestMainMenuActivity extends AppCompatActivity {
         navigationView.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_login) {
+                startActivity(new Intent(this, LoginActivity.class));
             } else if (id == R.id.nav_about) {
                 // NEW CODE
                 startActivity(new Intent(this, AboutActivity.class));
