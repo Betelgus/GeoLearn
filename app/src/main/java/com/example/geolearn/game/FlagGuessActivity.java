@@ -1,26 +1,23 @@
 package com.example.geolearn.game;
 
 import android.content.Intent;
-import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
-import com.bumptech.glide.request.transition.DrawableCrossFadeFactory;
 import com.example.geolearn.R;
 import com.example.geolearn.api.Country;
 import com.example.geolearn.api.Geoapi;
-import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,19 +35,16 @@ public class FlagGuessActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private TextView tvFlagCount;
     private ImageView imgFlag;
-    private MaterialButton[] optionButtons;
+    private Button btn1, btn2, btn3, btn4;
     private CountDownTimer timer;
 
     private List<Country> allCountries;
     private Country currentCountry;
-    private int score = 0;
+    private int score = 0; // This records the CORRECT answers
     private int questionCount = 0;
     private boolean isAnswered = false;
-    private long quizStartTime;
 
-    // Create a factory for the crossfade animation to avoid the "symbol not found" error
-    private final DrawableCrossFadeFactory factory =
-            new DrawableCrossFadeFactory.Builder().setCrossFadeEnabled(true).build();
+    private long quizStartTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,13 +54,10 @@ public class FlagGuessActivity extends AppCompatActivity {
         progressBar = findViewById(R.id.progressFlagTimer);
         tvFlagCount = findViewById(R.id.tvFlagCount);
         imgFlag = findViewById(R.id.imgFlag);
-
-        optionButtons = new MaterialButton[]{
-                findViewById(R.id.btnFlagOption1),
-                findViewById(R.id.btnFlagOption2),
-                findViewById(R.id.btnFlagOption3),
-                findViewById(R.id.btnFlagOption4)
-        };
+        btn1 = findViewById(R.id.btnFlagOption1);
+        btn2 = findViewById(R.id.btnFlagOption2);
+        btn3 = findViewById(R.id.btnFlagOption3);
+        btn4 = findViewById(R.id.btnFlagOption4);
 
         fetchCountries();
     }
@@ -86,10 +77,9 @@ public class FlagGuessActivity extends AppCompatActivity {
                     loadNewRound();
                 }
             }
-
             @Override
             public void onFailure(Call<List<Country>> call, Throwable t) {
-                Toast.makeText(FlagGuessActivity.this, "Network Error", Toast.LENGTH_SHORT).show();
+                Toast.makeText(FlagGuessActivity.this, "Check Internet Connection", Toast.LENGTH_SHORT).show();
                 finish();
             }
         });
@@ -115,79 +105,78 @@ public class FlagGuessActivity extends AppCompatActivity {
         }
         Collections.shuffle(options);
 
-        // This approach uses the factory to ensure it compiles correctly
-        Glide.with(this)
-                .load(currentCountry.flags.png)
-                .transition(DrawableTransitionOptions.with(factory))
-                .placeholder(android.R.color.transparent)
-                .into(imgFlag);
+        Glide.with(this).load(currentCountry.flags.png).placeholder(R.drawable.ic_launcher_background).into(imgFlag);
 
-        for (int i = 0; i < 4; i++) {
-            optionButtons[i].setText(options.get(i));
-            resetButtonStyle(optionButtons[i]);
-            optionButtons[i].setOnClickListener(v -> checkAnswer((MaterialButton) v));
-        }
+        btn1.setText(options.get(0)); btn2.setText(options.get(1));
+        btn3.setText(options.get(2)); btn4.setText(options.get(3));
+
+        resetButtons();
+
+        View.OnClickListener listener = v -> checkAnswer((Button) v);
+        btn1.setOnClickListener(listener); btn2.setOnClickListener(listener);
+        btn3.setOnClickListener(listener); btn4.setOnClickListener(listener);
 
         startTimer();
     }
 
-    private void checkAnswer(MaterialButton selected) {
+    private void checkAnswer(Button selected) {
         if (isAnswered) return;
         isAnswered = true;
-        if (timer != null) timer.cancel();
+        timer.cancel();
 
-        String selectedText = selected.getText().toString();
-        String correctText = currentCountry.name.common;
-
-        if (selectedText.equals(correctText)) {
+        if (selected.getText().toString().equals(currentCountry.name.common)) {
             score++;
-            applyColor(selected, Color.GREEN);
+            selected.setBackgroundColor(Color.GREEN);
+            selected.setTextColor(Color.WHITE);
         } else {
-            applyColor(selected, Color.RED);
-            highlightCorrect(correctText);
+            selected.setBackgroundColor(Color.RED);
+            selected.setTextColor(Color.WHITE);
+            highlightCorrect(currentCountry.name.common);
         }
 
         new Handler(Looper.getMainLooper()).postDelayed(this::loadNewRound, 1500);
     }
 
     private void highlightCorrect(String name) {
-        for (MaterialButton btn : optionButtons) {
-            if (btn.getText().toString().equals(name)) {
-                applyColor(btn, Color.GREEN);
-            }
-        }
+        if (btn1.getText().equals(name)) btn1.setBackgroundColor(Color.GREEN);
+        if (btn2.getText().equals(name)) btn2.setBackgroundColor(Color.GREEN);
+        if (btn3.getText().equals(name)) btn3.setBackgroundColor(Color.GREEN);
+        if (btn4.getText().equals(name)) btn4.setBackgroundColor(Color.GREEN);
     }
 
-    private void applyColor(MaterialButton btn, int color) {
-        btn.setBackgroundTintList(ColorStateList.valueOf(color));
-        btn.setTextColor(Color.WHITE);
-        btn.setStrokeColor(ColorStateList.valueOf(color));
-    }
-
-    private void resetButtonStyle(MaterialButton btn) {
-        btn.setBackgroundTintList(ColorStateList.valueOf(Color.TRANSPARENT));
-        btn.setTextColor(getColor(R.color.text_primary));
-        btn.setStrokeColor(ColorStateList.valueOf(getColor(R.color.secondary)));
+    private void resetButtons() {
+        int color = getColor(R.color.text_primary);
+        btn1.setBackgroundColor(Color.TRANSPARENT); btn1.setTextColor(color);
+        btn2.setBackgroundColor(Color.TRANSPARENT); btn2.setTextColor(color);
+        btn3.setBackgroundColor(Color.TRANSPARENT); btn3.setTextColor(color);
+        btn4.setBackgroundColor(Color.TRANSPARENT); btn4.setTextColor(color);
     }
 
     private void startTimer() {
         if (timer != null) timer.cancel();
         progressBar.setProgress(100);
         timer = new CountDownTimer(15000, 100) {
-            public void onTick(long millis) { progressBar.setProgress((int) (millis / 150)); }
-            public void onFinish() { if (!isAnswered) checkAnswer(optionButtons[0]); }
+            public void onTick(long millis) { progressBar.setProgress((int)(millis/150)); }
+            public void onFinish() { if(!isAnswered) checkAnswer(btn1); /*Auto fail*/ }
         }.start();
     }
 
     private void finishGame() {
         if (timer != null) timer.cancel();
-        long timeElapsed = System.currentTimeMillis() - quizStartTime;
-        String formattedTime = String.format("%02d:%02d", (timeElapsed / 60000), (timeElapsed / 1000) % 60);
 
-        Intent intent = new Intent(this, FlagResultActivity.class);
+        long endTime = System.currentTimeMillis();
+        long timeElapsed = endTime - quizStartTime;
+
+        int seconds = (int) (timeElapsed / 1000) % 60;
+        int minutes = (int) ((timeElapsed / (1000 * 60)) % 60);
+        String formattedTime = String.format("%02d:%02d", minutes, seconds);
+
+        Intent intent = new Intent(this, QuizResultActivity.class);
         intent.putExtra("SCORE", score);
         intent.putExtra("TOTAL_QUESTIONS", 10);
         intent.putExtra("TIME_TAKEN", formattedTime);
+        intent.putExtra("QUIZ_TYPE", "flag");
+
         startActivity(intent);
         finish();
     }
