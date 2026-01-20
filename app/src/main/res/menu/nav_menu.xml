@@ -13,6 +13,12 @@
             android:id="@+id/nav_about"
             android:icon="@android:drawable/ic_menu_info_details"
             android:title="About" />
+
+        <!-- New Feedback item -->
+        <item
+            android:id="@+id/nav_feedback"
+            android:icon="@android:drawable/ic_menu_send"
+            android:title="Feedback" />
     </group>
 
     <item android:title="Account">
@@ -21,10 +27,12 @@
                 android:id="@+id/nav_settings"
                 android:icon="@android:drawable/ic_menu_preferences"
                 android:title="Settings" />
+
             <item
                 android:id="@+id/nav_logout"
                 android:icon="@android:drawable/ic_lock_power_off"
                 android:title="Logout" />
         </menu>
     </item>
+
 </menu>

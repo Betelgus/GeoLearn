@@ -14,6 +14,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Geolearn">
         <activity
+            android:name=".home.FeedbackHistory"
+            android:exported="false" />
+        <activity
             android:name=".home.FeedbackEditActivity"
             android:exported="false" />
         <activity
