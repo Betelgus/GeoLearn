@@ -1,0 +1,362 @@
+[
+  {
+    "id": "geo_q_001",
+    "questionText": "What is the name of the peninsula containing Spain and Portugal?",
+    "options": [
+      "European Peninsula",
+      "Peloponnesian Peninsula",
+      "Scandinavian Peninsula",
+      "Iberian Peninsula"
+    ],
+    "correctAnswer": "Iberian Peninsula",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "geo_q_002",
+    "questionText": "Which of the following Arab countries does NOT have a flag containing only Pan-Arab colours?",
+    "options": [
+      "Kuwait",
+      "United Arab Emirates",
+      "Jordan",
+      "Qatar"
+    ],
+    "correctAnswer": "Qatar",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "geo_q_003",
+    "questionText": "What country is the second largest in the world by area?",
+    "options": [
+      "Russia",
+      "China",
+      "United States of America",
+      "Canada"
+    ],
+    "correctAnswer": "Canada",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "geo_q_004",
+    "questionText": "What is the capital of Spain?",
+    "options": [
+      "Barcelona",
+      "Sevilla",
+      "Toledo",
+      "Madrid"
+    ],
+    "correctAnswer": "Madrid",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "geo_q_005",
+    "questionText": "Which of these is the name of the largest city in the US state Tennessee?",
+    "options": [
+      "Thebes",
+      "Alexandria",
+      "Luxor",
+      "Memphis"
+    ],
+    "correctAnswer": "Memphis",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "geo_q_006",
+    "questionText": "What name was historically used for the Turkish city currently known as Istanbul?",
+    "options": [
+      "Hüdavendigar",
+      "Söğüt",
+      "Adrianople",
+      "Constantinople"
+    ],
+    "correctAnswer": "Constantinople",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "geo_q_007",
+    "questionText": "How many stars are featured on New Zealand's flag?",
+    "options": [
+      "5",
+      "2",
+      "0",
+      "4"
+    ],
+    "correctAnswer": "4",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "geo_q_008",
+    "questionText": "What is the official language of Costa Rica?",
+    "options": [
+      "English",
+      "Portuguese",
+      "Creole",
+      "Spanish"
+    ],
+    "correctAnswer": "Spanish",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "geo_q_009",
+    "questionText": "Which of the following languages does NOT use the Latin alphabet?",
+    "options": [
+      "Turkish",
+      "Swahili",
+      "Vietnamese",
+      "Georgian"
+    ],
+    "correctAnswer": "Georgian",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "geo_q_010",
+    "questionText": "Vatican City, the smallest country in the world, is fully enclosed by which country?",
+    "options": [
+      "France",
+      "Spain",
+      "Germany",
+      "Italy"
+    ],
+    "correctAnswer": "Italy",
+    "difficulty": "beginner"
+  },
+  {
+    "id": "geo_q_011",
+    "questionText": "What is the name of the capital of Turkey?",
+    "options": [
+      "Istanbul",
+      "Izmir",
+      "Bursa",
+      "Ankara"
+    ],
+    "correctAnswer": "Ankara",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "geo_q_012",
+    "questionText": "In which English county is Stonehenge?",
+    "options": [
+      "Somerset",
+      "Cumbria",
+      "Herefordshire",
+      "Wiltshire"
+    ],
+    "correctAnswer": "Wiltshire",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "geo_q_013",
+    "questionText": "What is the capital city of Slovenia?",
+    "options": [
+      "Maribor",
+      "Velenje",
+      "Trbovlje",
+      "Ljubljana"
+    ],
+    "correctAnswer": "Ljubljana",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "geo_q_014",
+    "questionText": "Which is the largest city in Morocco?",
+    "options": [
+      "Rabat",
+      "Fes",
+      "Sale",
+      "Casablanca"
+    ],
+    "correctAnswer": "Casablanca",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "geo_q_015",
+    "questionText": "The World Health Organization headquarters is located in which European country?",
+    "options": [
+      "United Kingdom",
+      "France",
+      "Belgium",
+      "Switzerland"
+    ],
+    "correctAnswer": "Switzerland",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "geo_q_016",
+    "questionText": "Which country has the abbreviation '''CH'''?",
+    "options": [
+      "China",
+      "Canada",
+      "No Country",
+      "Switzerland"
+    ],
+    "correctAnswer": "Switzerland",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "geo_q_017",
+    "questionText": "Which of the following countries banned the use of personal genetic ancestry tests?",
+    "options": [
+      "Austria",
+      "Canada",
+      "Sweden",
+      "Germany"
+    ],
+    "correctAnswer": "Germany",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "geo_q_018",
+    "questionText": "Eritrea, which became the 182nd member of the UN in 1993, is in the continent of?",
+    "options": [
+      "Europe",
+      "Asia",
+      "South America",
+      "Africa"
+    ],
+    "correctAnswer": "Africa",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "geo_q_019",
+    "questionText": "Which state of the United States is the smallest?",
+    "options": [
+      "Maine",
+      "Vermont",
+      "Massachusetts",
+      "Rhode Island"
+    ],
+    "correctAnswer": "Rhode Island",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "geo_q_020",
+    "questionText": "What mountain range lines the border between Spain and France?",
+    "options": [
+      "Alps",
+      "Carpathians",
+      "Urals",
+      "Pyrenees"
+    ],
+    "correctAnswer": "Pyrenees",
+    "difficulty": "intermediate"
+  },
+  {
+    "id": "geo_q_021",
+    "questionText": "What is the name of rocky region that spans most of eastern Canada?",
+    "options": [
+      "Rocky Mountains",
+      "Appalachian Mountains",
+      "Himalayas",
+      "Canadian Shield"
+    ],
+    "correctAnswer": "Canadian Shield",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "geo_q_022",
+    "questionText": "What is the most populous Muslim-majority nation in 2010?",
+    "options": [
+      "Saudi Arabia",
+      "Iran",
+      "Sudan",
+      "Indonesia"
+    ],
+    "correctAnswer": "Indonesia",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "geo_q_023",
+    "questionText": "Which is the largest freshwater lake in the world?",
+    "options": [
+      "Caspian Sea",
+      "Lake Michigan",
+      "Lake Huron",
+      "Lake Superior"
+    ],
+    "correctAnswer": "Lake Superior",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "geo_q_024",
+    "questionText": "What is the capital of Wisconsin, USA?",
+    "options": [
+      "Milwaukee",
+      "Wisconsin Dells",
+      "Green Bay",
+      "Madison"
+    ],
+    "correctAnswer": "Madison",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "geo_q_025",
+    "questionText": "What is the most common climbing route for the second highest mountain in the world, K2?",
+    "options": [
+      "Magic Line",
+      "Cesen Route",
+      "Polish Line",
+      "Abruzzi Spur"
+    ],
+    "correctAnswer": "Abruzzi Spur",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "geo_q_026",
+    "questionText": "What is the capital of Mauritius?",
+    "options": [
+      "Port Moresby",
+      "Port Vila",
+      "Port-au-Prince",
+      "Port Louis"
+    ],
+    "correctAnswer": "Port Louis",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "geo_q_027",
+    "questionText": "Which country is the Taedong River in?",
+    "options": [
+      "South Korea",
+      "Japan",
+      "China",
+      "North Korea"
+    ],
+    "correctAnswer": "North Korea",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "geo_q_028",
+    "questionText": "What is the county seat of King County, Washington?",
+    "options": [
+      "Bellevue",
+      "Enumclaw",
+      "Skykomish",
+      "Seattle"
+    ],
+    "correctAnswer": "Seattle",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "geo_q_029",
+    "questionText": "Which of these countries is NOT a part of the Asian continent?",
+    "options": [
+      "Georgia",
+      "Russia",
+      "Singapore",
+      "Suriname"
+    ],
+    "correctAnswer": "Suriname",
+    "difficulty": "advanced"
+  },
+  {
+    "id": "geo_q_030",
+    "questionText": "What is the official German name of the Swiss Federal Railways?",
+    "options": [
+      "Schweizerische Nationalbahnen",
+      "Bundesbahnen der Schweiz",
+      "Schweizerische Staatsbahnen",
+      "Schweizerische Bundesbahnen"
+    ],
+    "correctAnswer": "Schweizerische Bundesbahnen",
+    "difficulty": "advanced"
+  }
+]

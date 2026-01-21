@@ -15,12 +15,13 @@ import androidx.drawerlayout.widget.DrawerLayout;
 // --- Imports for Logout Logic ---
 import com.example.geolearn.auth.LoginActivity;
 import com.example.geolearn.auth.UserSession;
+import com.example.geolearn.feedback.FeedbackActivity;
+import com.example.geolearn.feedback.FeedbackHistory;
 import com.example.geolearn.game.FlashcardSelectionActivity;
 import com.google.firebase.auth.FirebaseAuth;
 // --------------------------------
 
 import com.example.geolearn.profile.BookmarksActivity;
-import com.example.geolearn.game.FlashcardActivity;
 import com.example.geolearn.game.GameAnalysisActivity;
 import com.example.geolearn.game.GameCategoryActivity;
 import com.example.geolearn.profile.ProgressDashboardActivity;
@@ -115,6 +116,8 @@ public class MainMenuActivity extends AppCompatActivity implements NavigationVie
             // Already on home screen
         } else if (id == R.id.nav_settings) {
             startActivity(new Intent(this, SettingsActivity.class));
+        } else if (id == R.id.nav_feedback) {
+            startActivity(new Intent(this, FeedbackHistory.class));
         } else if (id == R.id.nav_about) {
             startActivity(new Intent(this, AboutActivity.class));
         } else if (id == R.id.nav_logout) {

@@ -1,4 +1,4 @@
-package com.example.geolearn.home;
+package com.example.geolearn.feedback;
 import com.example.geolearn.R;
 
 import android.os.Bundle;
