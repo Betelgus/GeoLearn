@@ -9,44 +9,55 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
 import com.example.geolearn.R;
 import com.example.geolearn.api.Country;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class FlashcardActivity extends AppCompatActivity {
 
+    // UI Components
     private ImageView imgFlag;
     private TextView tvCountryName, tvCapital, tvRegion;
     private Button btnPrev, btnNext;
     private ImageButton btnBookmark;
     private ProgressBar loadingProgressBar;
 
+    // Data Variables
     private List<Country> countryList = new ArrayList<>();
     private int currentIndex = 0;
-    private Set<String> bookmarkedCountries = new HashSet<>();
-    private String category;
+
+    // Firebase
+    private FirebaseFirestore db;
+    private Set<String> bookmarkedIds = new HashSet<>();
+    private String userId;
+    private boolean isGuest = true; // Default to true for safety
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_flashcard);
 
-        // Get category from intent, default to "mountains" if null
-        category = getIntent().getStringExtra("CATEGORY");
-        if (category == null) category = "mountains";
-
-        initViews();
-        loadData();
-    }
-
-    private void initViews() {
+        // 1. Initialize Views
         imgFlag = findViewById(R.id.imgFlag);
         tvCountryName = findViewById(R.id.tvCountryName);
         tvCapital = findViewById(R.id.tvCapital);
@@ -56,53 +67,121 @@ public class FlashcardActivity extends AppCompatActivity {
         btnBookmark = findViewById(R.id.btnBookmark);
         loadingProgressBar = findViewById(R.id.loadingProgressBar);
 
-        // Back button
+        // Back Button Logic
         View btnBack = findViewById(R.id.btnBack);
         if (btnBack != null) {
             btnBack.setOnClickListener(v -> finish());
         }
 
-        // Previous button click
-        btnPrev.setOnClickListener(v -> {
-            if (currentIndex > 0) {
-                currentIndex--;
-                showCard();
-            }
-        });
+        // 2. Setup Firebase
+        db = FirebaseFirestore.getInstance();
 
-        // Next button click
-        btnNext.setOnClickListener(v -> {
-            if (currentIndex < countryList.size() - 1) {
-                currentIndex++;
-                showCard();
-            }
-        });
+        // 3. CHECK SESSION (Hides button if Guest)
+        checkUserSession();
 
-        // Bookmark button click
+        // 4. Load Data
+        loadData();
+
+        // 5. Button Listeners
+        btnPrev.setOnClickListener(v -> showPreviousCard());
+        btnNext.setOnClickListener(v -> showNextCard());
         btnBookmark.setOnClickListener(v -> toggleBookmark());
     }
 
-    private void loadData() {
-        if (loadingProgressBar != null) loadingProgressBar.setVisibility(View.GONE);
+    private void checkUserSession() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
-        // Fetch data from local JSON via FlashcardData helper class
-        countryList = FlashcardData.getCategoryData(this, category);
-
-        if (countryList != null && !countryList.isEmpty()) {
-            showCard();
+        // You are a USER only if: user exists AND user is NOT anonymous
+        if (user != null && !user.isAnonymous()) {
+            isGuest = false;
+            userId = user.getUid();
+            btnBookmark.setVisibility(View.VISIBLE); // Show Star
+            setupFirestoreListener();
         } else {
-            Toast.makeText(this, "No items found for category: " + category, Toast.LENGTH_SHORT).show();
+            isGuest = true;
+            userId = null;
+            btnBookmark.setVisibility(View.GONE); // Hide Star
         }
     }
 
-    private void showCard() {
+    private void loadData() {
+        String categoryParam = getIntent().getStringExtra("CATEGORY");
+        final String category = (categoryParam != null) ? categoryParam : "random";
+
+        if (loadingProgressBar != null) loadingProgressBar.setVisibility(View.VISIBLE);
+
+        com.google.firebase.firestore.Query query;
+
+        if (category.equals("random")) {
+            query = db.collection("flashcards");
+        } else {
+            query = db.collection("flashcards").whereEqualTo("category", category);
+        }
+
+        query.get().addOnSuccessListener(queryDocumentSnapshots -> {
+            if (loadingProgressBar != null) loadingProgressBar.setVisibility(View.GONE);
+            countryList.clear();
+
+            if (queryDocumentSnapshots != null) {
+                for (DocumentSnapshot doc : queryDocumentSnapshots) {
+                    Country c = doc.toObject(Country.class);
+                    if (c != null) {
+                        c.id = doc.getId(); // Save the Firestore ID
+                        countryList.add(c);
+                    }
+                }
+            }
+
+            if (category.equals("random")) {
+                Collections.shuffle(countryList);
+            }
+
+            if (!countryList.isEmpty()) {
+                currentIndex = 0;
+                updateUI();
+            } else {
+                Toast.makeText(this, "No cards found", Toast.LENGTH_SHORT).show();
+            }
+        }).addOnFailureListener(e -> {
+            if (loadingProgressBar != null) loadingProgressBar.setVisibility(View.GONE);
+            Log.e("FlashcardActivity", "Error loading data", e);
+            Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        });
+    }
+
+    private void setupFirestoreListener() {
+        // Double check: Never run this if guest
+        if (isGuest || userId == null) return;
+
+        db.collection("users")
+                .document(userId)
+                .collection("bookmarks")
+                .addSnapshotListener(new EventListener<QuerySnapshot>() {
+                    @Override
+                    public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
+                        if (error != null) return;
+
+                        bookmarkedIds.clear();
+                        if (value != null) {
+                            for (DocumentSnapshot doc : value) {
+                                bookmarkedIds.add(doc.getId());
+                            }
+                        }
+                        // Refresh the star icon if data is loaded
+                        if (!countryList.isEmpty()) {
+                            updateBookmarkIconState();
+                        }
+                    }
+                });
+    }
+
+    private void updateUI() {
         if (countryList.isEmpty()) return;
 
         Country country = countryList.get(currentIndex);
 
-        // 1. Set Texts
-        if (country.name != null) tvCountryName.setText(country.name.common);
-        else tvCountryName.setText("Unknown");
+        tvCountryName.setText(country.name.common);
+        tvRegion.setText(country.region != null ? country.region : "");
 
         if (country.capital != null && !country.capital.isEmpty()) {
             tvCapital.setText(country.capital.get(0));
@@ -110,70 +189,90 @@ public class FlashcardActivity extends AppCompatActivity {
             tvCapital.setText("N/A");
         }
 
-        tvRegion.setText(country.region);
-
-        // 2. Load Local Image (Smart Loader)
+        // Image Loading
         if (country.flags != null && country.flags.png != null) {
-            String imageName = country.flags.png;
+            String imgName = country.flags.png.toLowerCase().replace(" ", "_");
+            if (imgName.contains(".")) imgName = imgName.substring(0, imgName.lastIndexOf('.'));
 
-            // Remove extension if present in JSON (e.g. "everest.jpg" -> "everest")
-            if (imageName.contains(".")) {
-                imageName = imageName.substring(0, imageName.lastIndexOf('.'));
-            }
-
-            // Android resources must be lowercase and have no spaces
-            imageName = imageName.toLowerCase().replace(" ", "_");
-
-            // Look up the Resource ID by name in the drawable folder
-            int resId = getResources().getIdentifier(imageName, "drawable", getPackageName());
+            int resId = getResources().getIdentifier(imgName, "drawable", getPackageName());
 
             if (resId != 0) {
-                // Image found! Load it.
-                Glide.with(this)
-                        .load(resId)
-                        .placeholder(android.R.drawable.ic_menu_gallery)
-                        .error(android.R.drawable.stat_notify_error)
-                        .into(imgFlag);
+                Glide.with(this).load(resId).into(imgFlag);
             } else {
-                // Image NOT found in drawable folder
-                Log.e("FlashcardActivity", "Image not found: " + imageName);
                 imgFlag.setImageResource(android.R.drawable.ic_menu_gallery);
             }
-        } else {
-            imgFlag.setImageResource(android.R.drawable.ic_menu_gallery);
         }
 
-        // 3. Update Buttons State
-        btnPrev.setEnabled(currentIndex > 0);
-        btnNext.setEnabled(currentIndex < countryList.size() - 1);
-        btnPrev.setAlpha(currentIndex > 0 ? 1.0f : 0.5f);
-        btnNext.setAlpha(currentIndex < countryList.size() - 1 ? 1.0f : 0.5f);
+        // Visibility Check: Ensure button status is correct for every card
+        if (isGuest) {
+            btnBookmark.setVisibility(View.GONE);
+        } else {
+            btnBookmark.setVisibility(View.VISIBLE);
+            updateBookmarkIconState();
+        }
+    }
 
-        updateBookmarkIcon();
+    private void updateBookmarkIconState() {
+        if (isGuest || countryList.isEmpty()) return;
+
+        Country current = countryList.get(currentIndex);
+        if (current.id == null) return;
+
+        if (bookmarkedIds.contains(current.id)) {
+            // Filled Star
+            btnBookmark.setImageResource(android.R.drawable.btn_star_big_on);
+            btnBookmark.setColorFilter(getResources().getColor(R.color.accent));
+        } else {
+            // Outline Star
+            btnBookmark.setImageResource(android.R.drawable.btn_star_big_off);
+            btnBookmark.setColorFilter(getResources().getColor(R.color.text_secondary));
+        }
     }
 
     private void toggleBookmark() {
-        if (countryList.isEmpty()) return;
-        String countryName = countryList.get(currentIndex).name.common;
-
-        if (bookmarkedCountries.contains(countryName)) {
-            bookmarkedCountries.remove(countryName);
-            Toast.makeText(this, "Removed from bookmarks", Toast.LENGTH_SHORT).show();
-        } else {
-            bookmarkedCountries.add(countryName);
-            Toast.makeText(this, "Bookmarked!", Toast.LENGTH_SHORT).show();
+        // Security check: Stop guests from clicking
+        if (isGuest || userId == null) {
+            Toast.makeText(this, "Please login to save bookmarks", Toast.LENGTH_SHORT).show();
+            return;
         }
-        updateBookmarkIcon();
+
+        if (countryList.isEmpty()) return;
+
+        Country current = countryList.get(currentIndex);
+        if (current.id == null) {
+            Toast.makeText(this, "Error: Card ID is missing", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        DocumentReference docRef = db.collection("users")
+                .document(userId)
+                .collection("bookmarks")
+                .document(current.id);
+
+        if (bookmarkedIds.contains(current.id)) {
+            docRef.delete().addOnSuccessListener(aVoid ->
+                    Toast.makeText(this, "Removed bookmark", Toast.LENGTH_SHORT).show());
+        } else {
+            Map<String, Object> data = new HashMap<>();
+            data.put("timestamp", System.currentTimeMillis());
+            data.put("name", current.name.common);
+
+            docRef.set(data).addOnSuccessListener(aVoid ->
+                    Toast.makeText(this, "Bookmark Saved!", Toast.LENGTH_SHORT).show());
+        }
     }
 
-    private void updateBookmarkIcon() {
-        if (countryList.isEmpty()) return;
-        String countryName = countryList.get(currentIndex).name.common;
+    private void showPreviousCard() {
+        if (currentIndex > 0) {
+            currentIndex--;
+            updateUI();
+        }
+    }
 
-        if (bookmarkedCountries.contains(countryName)) {
-            btnBookmark.setImageResource(R.drawable.ic_star_filled);
-        } else {
-            btnBookmark.setImageResource(R.drawable.ic_star_outline);
+    private void showNextCard() {
+        if (currentIndex < countryList.size() - 1) {
+            currentIndex++;
+            updateUI();
         }
     }
 }

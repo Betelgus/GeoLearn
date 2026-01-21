@@ -89,7 +89,7 @@
                 android:id="@+id/tvCountryName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                tools:text="Mount Everest"
+                tools:text="Country Name"
                 android:textSize="26sp"
                 android:textStyle="bold"
                 android:textColor="@color/text_primary"
@@ -106,7 +106,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Fact"
+                android:text="Capital"
                 android:textAllCaps="true"
                 android:textColor="@color/text_secondary"
                 android:textSize="12sp"
@@ -116,7 +116,7 @@
                 android:id="@+id/tvCapital"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                tools:text="8,848 m"
+                tools:text="Capital City"
                 android:textSize="20sp"
                 android:textColor="@color/primary"
                 android:textStyle="bold"
@@ -126,7 +126,7 @@
                 android:id="@+id/tvRegion"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                tools:text="Himalayas"
+                tools:text="Region"
                 android:paddingHorizontal="12dp"
                 android:paddingVertical="4dp"
                 android:background="@drawable/bg_rounded_label"
@@ -149,13 +149,17 @@
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="60dp"
             android:layout_height="60dp"
-            android:text="&lt;"
-            android:textSize="24sp"
+            app:icon="@drawable/ic_chevron_left"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:iconTint="@color/text_primary"
             android:insetTop="0dp"
             android:insetBottom="0dp"
             app:cornerRadius="30dp"
             app:strokeColor="@color/text_secondary"
-            android:textColor="@color/text_primary"/>
+            app:strokeWidth="1dp"
+            android:padding="0dp"
+            android:layout_marginEnd="24dp"/>
 
         <ImageButton
             android:id="@+id/btnBookmark"
@@ -163,7 +167,6 @@
             android:layout_height="60dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_star_outline"
-            android:layout_marginHorizontal="32dp"
             app:tint="@color/accent" />
 
         <Button
@@ -171,13 +174,17 @@
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="60dp"
             android:layout_height="60dp"
-            android:text="&gt;"
-            android:textSize="24sp"
+            app:icon="@drawable/ic_chevron_right"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:iconTint="@color/text_primary"
             android:insetTop="0dp"
             android:insetBottom="0dp"
             app:cornerRadius="30dp"
             app:strokeColor="@color/text_secondary"
-            android:textColor="@color/text_primary"/>
+            app:strokeWidth="1dp"
+            android:padding="0dp"
+            android:layout_marginStart="24dp"/>
 
     </LinearLayout>
 

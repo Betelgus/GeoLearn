@@ -12,8 +12,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
-import com.example.geolearn.game.FlashcardActivity;
-import com.example.geolearn.game.FlashcardSelectionActivity; // <--- Import this
+import com.example.geolearn.game.FlashcardSelectionActivity; // Make sure this matches your package
 import com.example.geolearn.game.GameCategoryActivity;
 import com.example.geolearn.R;
 import com.example.geolearn.auth.LoginActivity;
@@ -66,12 +65,16 @@ public class GuestMainMenuActivity extends AppCompatActivity {
         // Open features
         findViewById(R.id.cardQuiz).setOnClickListener(v -> showDifficultyBottomSheet());
 
-        // --- UPDATED: Point to Selection Screen ---
+        // --- FIXED: Point to Selection Screen ---
         findViewById(R.id.cardFlashcard).setOnClickListener(v -> {
-            startActivity(new Intent(this, FlashcardSelectionActivity.class));
+            // 1. Go to SELECTION ACTIVITY, not the game directly
+            Intent intent = new Intent(GuestMainMenuActivity.this, FlashcardSelectionActivity.class);
+            // 2. Pass the FORCE_GUEST flag so the next screen knows to hide bookmarks later
+            intent.putExtra("FORCE_GUEST", true);
+            startActivity(intent);
         });
 
-        // --- NEW FEEDBACK LISTENER (READ-ONLY) ---
+        // Feedback Listener
         findViewById(R.id.cardFeedback).setOnClickListener(v -> {
             Intent intent = new Intent(GuestMainMenuActivity.this, FeedbackActivity.class);
             intent.putExtra("IS_GUEST", true);
