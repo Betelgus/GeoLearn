@@ -28,7 +28,6 @@ public class QuizResultActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_quiz_result);
 
-        // 1. Initialize Views
         TextView tvScoreFraction = findViewById(R.id.tvScoreFraction);
         TextView tvCorrect = findViewById(R.id.tvCorrect);
         TextView tvIncorrect = findViewById(R.id.tvIncorrect);
@@ -36,37 +35,30 @@ public class QuizResultActivity extends AppCompatActivity {
         ProgressBar progressScore = findViewById(R.id.progressScore);
         Button btnBackToMenu = findViewById(R.id.btnBackToMenu);
 
-        // 2. Get Data from Intent
         int score = getIntent().getIntExtra("SCORE", 0);
         int totalQuestions = getIntent().getIntExtra("TOTAL_QUESTIONS", 10);
         String timeTaken = getIntent().getStringExtra("TIME_TAKEN");
-        String quizType = getIntent().getStringExtra("QUIZ_TYPE"); 
+        String quizType = getIntent().getStringExtra("QUIZ_TYPE");
 
-        // Safety Check: If time is missing, show a dash
         if (timeTaken == null) timeTaken = "--:--";
-        if (quizType == null) quizType = "unknown"; // Default quiz type
+        if (quizType == null) quizType = "unknown";
 
-        // 3. CALCULATE Correct/Incorrect
         int correct = score;
         int incorrect = totalQuestions - score;
 
-        // 4. Set Data to Views
         tvScoreFraction.setText(score + "/" + totalQuestions);
         tvCorrect.setText(String.valueOf(correct));
         tvIncorrect.setText(String.valueOf(incorrect));
         tvTime.setText(timeTaken);
 
-        // 5. Update Circular Progress Bar
         int percentage = 0;
         if (totalQuestions > 0) {
             percentage = (score * 100) / totalQuestions;
         }
         progressScore.setProgress(percentage);
 
-        // 6. Save Score to Firestore
         saveScoreToFirestore(score, totalQuestions, timeTaken, quizType);
 
-        // 7. Back to Menu
         btnBackToMenu.setOnClickListener(v -> {
             Intent intent = new Intent(QuizResultActivity.this, MainMenuActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -81,23 +73,22 @@ public class QuizResultActivity extends AppCompatActivity {
             String userId = currentUser.getUid();
             FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-            // Create a new result entry
             Map<String, Object> quizResult = new HashMap<>();
             quizResult.put("userId", userId);
-            quizResult.put("quizType", quizType);
+            quizResult.put("quizType", quizType); // This now includes difficulty
             quizResult.put("score", score);
             quizResult.put("totalQuestions", totalQuestions);
             quizResult.put("timeTaken", timeTaken);
             quizResult.put("timestamp", System.currentTimeMillis());
 
-            db.collection("scores")
+            db.collection("scores") // Changed from "quiz_results" to "scores"
                     .add(quizResult)
                     .addOnSuccessListener(documentReference -> {
-                        Log.d(TAG, "Quiz result saved to Firestore with ID: " + documentReference.getId());
+                        Log.d(TAG, "Score saved with ID: " + documentReference.getId());
                         Toast.makeText(QuizResultActivity.this, "Score saved!", Toast.LENGTH_SHORT).show();
                     })
                     .addOnFailureListener(e -> {
-                        Log.w(TAG, "Error saving quiz result", e);
+                        Log.w(TAG, "Error saving score", e);
                         Toast.makeText(QuizResultActivity.this, "Failed to save score.", Toast.LENGTH_SHORT).show();
                     });
         } else {
