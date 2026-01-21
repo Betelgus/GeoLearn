@@ -12,7 +12,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
-import com.example.geolearn.game.FlashcardActivity;
+import com.example.geolearn.feedback.FeedbackActivity;
 import com.example.geolearn.game.FlashcardSelectionActivity; // <--- Import this
 import com.example.geolearn.game.GameCategoryActivity;
 import com.example.geolearn.R;

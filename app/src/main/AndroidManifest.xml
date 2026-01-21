@@ -14,10 +14,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Geolearn">
         <activity
-            android:name=".home.FeedbackEditActivity"
+            android:name=".feedback.FeedbackEditActivity"
             android:exported="false" />
         <activity
-            android:name=".home.FeedbackUserActivity"
+            android:name=".feedback.FeedbackUserActivity"
             android:exported="false" />
         <activity
             android:name=".home.SplashActivity"
@@ -44,10 +44,10 @@
         <activity android:name=".profile.SettingsActivity" />
         <activity android:name=".game.QuizResultActivity" />
         <activity android:name=".game.FlagResultActivity" />
-        <activity android:name=".home.FeedbackActivity" />
+        <activity android:name=".feedback.FeedbackActivity" />
         <activity android:name=".home.AboutActivity" />
         <activity
-            android:name=".home.FeedbackHistory"
+            android:name=".feedback.FeedbackHistory"
             android:exported="true"/>
 
     </application>

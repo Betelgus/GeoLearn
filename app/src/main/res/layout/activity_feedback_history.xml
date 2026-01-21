@@ -25,93 +25,46 @@
             app:tint="#333333"/>
 
         <TextView
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:text="My Feedbacks"
             android:textSize="20sp"
             android:textStyle="bold"
             android:textColor="#333333"
             android:layout_marginStart="12dp"/>
+
+        <TextView
+            android:id="@+id/btnAddFeedback"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Add"
+            android:textColor="@color/primary"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:padding="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"/>
+
     </LinearLayout>
 
     <!-- Feedback List -->
-    <ScrollView
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvFeedback"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/topBar"
-        android:padding="16dp">
+        android:padding="16dp"
+        android:clipToPadding="false"/>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <!-- ================= Feedback Card ================= -->
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="#FFFFFF"
-                android:padding="16dp"
-                android:elevation="3dp"
-                android:layout_marginBottom="16dp">
-
-                <!-- Small Edit Button -->
-                <!-- Small Edit Button as Text -->
-                <TextView
-                    android:id="@+id/btnEdit"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentEnd="true"
-                    android:text="✏️"
-                    android:textSize="18sp"
-                    android:gravity="center"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:textColor="@color/primary"/>
-
-
-                <!-- Rating -->
-                <RatingBar
-                    android:id="@+id/ratingBar"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:numStars="5"
-                    android:rating="5"
-                    android:stepSize="1"
-                    android:isIndicator="true"
-                    android:progressTint="#FFC107"
-                    android:secondaryProgressTint="#E0E0E0"
-                    android:progressBackgroundTint="#E0E0E0"/>
-
-                <!-- Feedback Text -->
-                <TextView
-                    android:id="@+id/tvFeedback"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@id/ratingBar"
-                    android:layout_marginTop="8dp"
-                    android:text="Amazing app! Really helps me revise geography."
-                    android:textSize="14sp"
-                    android:textColor="#444"/>
-
-                <!-- Date -->
-                <TextView
-                    android:id="@+id/tvDate"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@id/tvFeedback"
-                    android:layout_marginTop="10dp"
-                    android:text="20 Jan 2026"
-                    android:textSize="12sp"
-                    android:textColor="#888"/>
-
-            </RelativeLayout>
-            <!-- ================================================= -->
-
-            <!-- You can duplicate the card above for more users -->
-
-        </LinearLayout>
-    </ScrollView>
+    <TextView
+        android:id="@+id/tvEmpty"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:text="No feedbacks found."
+        android:visibility="gone"
+        android:textColor="#888"/>
 
 </RelativeLayout>
