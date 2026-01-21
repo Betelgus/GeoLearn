@@ -13,6 +13,7 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.example.geolearn.game.FlashcardActivity;
+import com.example.geolearn.game.FlashcardSelectionActivity; // <--- Import this
 import com.example.geolearn.game.GameCategoryActivity;
 import com.example.geolearn.R;
 import com.example.geolearn.auth.LoginActivity;
@@ -47,7 +48,6 @@ public class GuestMainMenuActivity extends AppCompatActivity {
             if (id == R.id.nav_login) {
                 startActivity(new Intent(this, LoginActivity.class));
             } else if (id == R.id.nav_about) {
-                // NEW CODE
                 startActivity(new Intent(this, AboutActivity.class));
             } else if (id == R.id.nav_exit) {
                 finishAffinity();
@@ -66,14 +66,15 @@ public class GuestMainMenuActivity extends AppCompatActivity {
         // Open features
         findViewById(R.id.cardQuiz).setOnClickListener(v -> showDifficultyBottomSheet());
 
+        // --- UPDATED: Point to Selection Screen ---
         findViewById(R.id.cardFlashcard).setOnClickListener(v -> {
-            startActivity(new Intent(this, FlashcardActivity.class));
+            startActivity(new Intent(this, FlashcardSelectionActivity.class));
         });
 
         // --- NEW FEEDBACK LISTENER (READ-ONLY) ---
         findViewById(R.id.cardFeedback).setOnClickListener(v -> {
             Intent intent = new Intent(GuestMainMenuActivity.this, FeedbackActivity.class);
-            intent.putExtra("IS_GUEST", true); // Guest -> View Only (Add button hidden)
+            intent.putExtra("IS_GUEST", true);
             startActivity(intent);
         });
     }

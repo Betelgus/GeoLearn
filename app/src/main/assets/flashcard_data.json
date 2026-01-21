@@ -1,0 +1,224 @@
+{
+  "mountains": [
+    {
+      "name": { "common": "Mount Everest" },
+      "capital": ["8,848 m"],
+      "region": "Himalayas",
+      "flags": { "png": "everest" }
+    },
+    {
+      "name": { "common": "K2" },
+      "capital": ["8,611 m"],
+      "region": "Karakoram",
+      "flags": { "png": "k2" }
+    },
+    {
+      "name": { "common": "Kangchenjunga" },
+      "capital": ["8,586 m"],
+      "region": "Himalayas",
+      "flags": { "png": "kangchenjunga" }
+    },
+    {
+      "name": { "common": "Kilimanjaro" },
+      "capital": ["5,895 m"],
+      "region": "Africa",
+      "flags": { "png": "kilimanjaro" }
+    },
+    {
+      "name": { "common": "Fuji" },
+      "capital": ["3,776 m"],
+      "region": "Japan",
+      "flags": { "png": "fuji" }
+    }
+  ],
+  "rivers": [
+    {
+      "name": { "common": "Nile" },
+      "capital": ["6,650 km"],
+      "region": "Africa",
+      "flags": { "png": "nile" }
+    },
+    {
+      "name": { "common": "Amazon" },
+      "capital": ["6,575 km"],
+      "region": "South America",
+      "flags": { "png": "amazon" }
+    },
+    {
+      "name": { "common": "Yangtze" },
+      "capital": ["6,300 km"],
+      "region": "Asia",
+      "flags": { "png": "yangtze" }
+    },
+    {
+      "name": { "common": "Mississippi" },
+      "capital": ["6,275 km"],
+      "region": "North America",
+      "flags": { "png": "mississippi" }
+    }
+  ],
+  "deserts": [
+    {
+      "name": { "common": "Sahara" },
+      "capital": ["9,200,000 km²"],
+      "region": "Africa",
+      "flags": { "png": "sahara" }
+    },
+    {
+      "name": { "common": "Arabian Desert" },
+      "capital": ["2,330,000 km²"],
+      "region": "Middle East",
+      "flags": { "png": "arabiandesert" }
+    },
+    {
+      "name": { "common": "Gobi Desert" },
+      "capital": ["1,295,000 km²"],
+      "region": "Asia",
+      "flags": { "png": "gobidesert" }
+    }
+  ],
+  "oceans": [
+    {
+      "name": { "common": "Pacific Ocean" },
+      "capital": ["168,723,000 km²"],
+      "region": "Largest Ocean",
+      "flags": { "png": "pacificocean" }
+    },
+    {
+      "name": { "common": "Atlantic Ocean" },
+      "capital": ["85,133,000 km²"],
+      "region": "Second Largest",
+      "flags": { "png": "atlanticocean" }
+    },
+    {
+      "name": { "common": "Indian Ocean" },
+      "capital": ["70,560,000 km²"],
+      "region": "Third Largest",
+      "flags": { "png": "indianocean" }
+    }
+  ],
+  "wonders": [
+    {
+      "name": { "common": "Great Wall of China" },
+      "capital": ["China"],
+      "region": "Ancient Fortification",
+      "flags": { "png": "greatwall" }
+    },
+    {
+      "name": { "common": "Petra" },
+      "capital": ["Jordan"],
+      "region": "Archaeological City",
+      "flags": { "png": "petra" }
+    },
+    {
+      "name": { "common": "Colosseum" },
+      "capital": ["Italy"],
+      "region": "Amphitheatre",
+      "flags": { "png": "colosseum" }
+    },
+    {
+      "name": { "common": "Machu Picchu" },
+      "capital": ["Peru"],
+      "region": "Inca Citadel",
+      "flags": { "png": "machupicchu" }
+    },
+    {
+      "name": { "common": "Taj Mahal" },
+      "capital": ["India"],
+      "region": "Mausoleum",
+      "flags": { "png": "tajmahal" }
+    }
+  ],
+  "solar_system": [
+    {
+      "name": { "common": "Mercury" },
+      "capital": ["0 Moons"],
+      "region": "Terrestrial Planet",
+      "flags": { "png": "mercury" }
+    },
+    {
+      "name": { "common": "Venus" },
+      "capital": ["0 Moons"],
+      "region": "Terrestrial Planet",
+      "flags": { "png": "venus" }
+    },
+    {
+      "name": { "common": "Earth" },
+      "capital": ["1 Moon"],
+      "region": "Terrestrial Planet",
+      "flags": { "png": "earth" }
+    },
+    {
+      "name": { "common": "Mars" },
+      "capital": ["2 Moons"],
+      "region": "Terrestrial Planet",
+      "flags": { "png": "mars" }
+    },
+    {
+      "name": { "common": "Jupiter" },
+      "capital": ["95 Moons"],
+      "region": "Gas Giant",
+      "flags": { "png": "jupiter" }
+    }
+  ],
+  "continents": [
+    {
+      "name": { "common": "Asia" },
+      "capital": ["4.7 Billion People"],
+      "region": "Largest Continent",
+      "flags": { "png": "asia" }
+    },
+    {
+      "name": { "common": "Africa" },
+      "capital": ["1.4 Billion People"],
+      "region": "Second Largest",
+      "flags": { "png": "africa" }
+    },
+    {
+      "name": { "common": "Europe" },
+      "capital": ["740 Million People"],
+      "region": "Northern Hemisphere",
+      "flags": { "png": "europe" }
+    }
+  ],
+  "islands": [
+    {
+      "name": { "common": "Greenland" },
+      "capital": ["2,130,800 km²"],
+      "region": "North America (Denmark)",
+      "flags": { "png": "greenland" }
+    },
+    {
+      "name": { "common": "New Guinea" },
+      "capital": ["785,753 km²"],
+      "region": "Oceania",
+      "flags": { "png": "newguinea" }
+    },
+    {
+      "name": { "common": "Borneo" },
+      "capital": ["743,330 km²"],
+      "region": "Asia",
+      "flags": { "png": "borneo" }
+    }
+  ],
+  "smallest_countries": [
+    {
+      "name": { "common": "Vatican City" },
+      "capital": ["0.49 km²"],
+      "region": "Europe",
+      "flags": { "png": "vaticancity" }
+    },
+    {
+      "name": { "common": "Monaco" },
+      "capital": ["2.02 km²"],
+      "region": "Europe",
+      "flags": { "png": "monaco" }
+    },
+    {
+      "name": { "common": "Nauru" },
+      "capital": ["21 km²"],
+      "region": "Oceania",
+      "flags": { "png": "nauru" }
+    }
+  ]
+}

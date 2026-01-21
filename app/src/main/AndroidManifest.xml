@@ -41,6 +41,7 @@
         <activity android:name=".home.MainMenuActivity" />
         <activity android:name=".game.QuizUIActivity" />
         <activity android:name=".game.FlashcardActivity" />
+        <activity android:name=".game.FlashcardSelectionActivity" />
         <activity android:name=".game.GameAnalysisActivity" />
         <activity android:name=".game.GameCategoryActivity" />
         <activity android:name=".game.FlagGuessActivity" />
