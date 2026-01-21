@@ -15,6 +15,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 // --- Imports for Logout Logic ---
 import com.example.geolearn.auth.LoginActivity;
 import com.example.geolearn.auth.UserSession;
+import com.example.geolearn.game.FlashcardSelectionActivity;
 import com.google.firebase.auth.FirebaseAuth;
 // --------------------------------
 
@@ -60,7 +61,7 @@ public class MainMenuActivity extends AppCompatActivity implements NavigationVie
         findViewById(R.id.cardQuiz).setOnClickListener(v -> showDifficultyBottomSheet());
 
         findViewById(R.id.cardFlashcard).setOnClickListener(v ->
-                startActivity(new Intent(this, FlashcardActivity.class)));
+                startActivity(new Intent(this, FlashcardSelectionActivity.class)));
 
         findViewById(R.id.cardGameAnalysis).setOnClickListener(v ->
                 startActivity(new Intent(this, GameAnalysisActivity.class)));
