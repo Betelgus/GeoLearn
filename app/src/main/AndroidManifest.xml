@@ -14,10 +14,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Geolearn">
         <activity
-            android:name=".profile.EditPasswordActivity"
+            android:name=".home.FeedbackEditActivity"
             android:exported="false" />
         <activity
-            android:name=".profile.EditProfileActivity"
+            android:name=".home.FeedbackUserActivity"
             android:exported="false" />
         <activity
             android:name=".home.SplashActivity"
@@ -29,12 +29,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".home.FeedbackEditActivity"
-            android:exported="false" />
-        <activity
-            android:name=".home.FeedbackUserActivity"
-            android:exported="false" />
         <activity android:name=".home.GuestMainMenuActivity" />
         <activity android:name=".auth.LoginActivity" />
         <activity android:name=".auth.RegisterActivity" />
@@ -52,6 +46,10 @@
         <activity android:name=".game.FlagResultActivity" />
         <activity android:name=".home.FeedbackActivity" />
         <activity android:name=".home.AboutActivity" />
+        <activity
+            android:name=".home.FeedbackHistory"
+            android:exported="true"/>
+
     </application>
 
 </manifest>

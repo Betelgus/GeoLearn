@@ -117,40 +117,60 @@ public class RegisterActivity extends AppCompatActivity {
         btnSignUp.setEnabled(false);
         Toast.makeText(this, "Registering...", Toast.LENGTH_SHORT).show();
 
-        // Create User in Firebase Auth
-        mAuth.createUserWithEmailAndPassword(email, password)
-                .addOnCompleteListener(this, task -> {
-                    if (task.isSuccessful() && mAuth.getCurrentUser() != null) {
-                        Log.d(TAG, "FirebaseAuth: Success");
-                        String userId = mAuth.getCurrentUser().getUid();
+        // First, check if the username already exists
+        db.collection("users").whereEqualTo("username", username).get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        if (!task.getResult().isEmpty()) {
+                            // Username already exists
+                            btnSignUp.setEnabled(true);
+                            etUsername.setError("Username already taken");
+                            etUsername.requestFocus();
+                            Toast.makeText(RegisterActivity.this, "Username already registered.", Toast.LENGTH_LONG).show();
+                        } else {
+                            // Username is unique, proceed with Firebase Auth creation
+                            mAuth.createUserWithEmailAndPassword(email, password)
+                                    .addOnCompleteListener(this, authTask -> {
+                                        if (authTask.isSuccessful() && mAuth.getCurrentUser() != null) {
+                                            Log.d(TAG, "FirebaseAuth: Success");
+                                            String userId = mAuth.getCurrentUser().getUid();
 
-                        // Create User Map
-                        Map<String, Object> userMap = new HashMap<>();
-                        userMap.put("username", username); // Matches "username" in LoginActivity lookup
-                        userMap.put("age", age);
-                        userMap.put("email", email);
+                                            // Create User Map
+                                            Map<String, Object> userMap = new HashMap<>();
+                                            userMap.put("username", username);
+                                            userMap.put("age", age);
+                                            userMap.put("email", email);
 
-                        // Save to Firestore
-                        db.collection("users").document(userId).set(userMap)
-                                .addOnCompleteListener(dbTask -> {
-                                    if (dbTask.isSuccessful()) {
-                                        Log.d(TAG, "Firestore: Success");
-                                        saveUserLocally(userId, username, email, age);
-                                        completeRegistration();
-                                    } else {
-                                        btnSignUp.setEnabled(true);
-                                        String error = dbTask.getException() != null ? dbTask.getException().getMessage() : "Database Error";
-                                        Toast.makeText(RegisterActivity.this, "Error saving data: " + error, Toast.LENGTH_LONG).show();
-                                    }
-                                });
+                                            // Save to Firestore
+                                            db.collection("users").document(userId).set(userMap)
+                                                    .addOnCompleteListener(dbTask -> {
+                                                        if (dbTask.isSuccessful()) {
+                                                            Log.d(TAG, "Firestore: Success");
+                                                            saveUserLocally(userId, username, email, age);
+                                                            completeRegistration();
+                                                        } else {
+                                                            btnSignUp.setEnabled(true);
+                                                            String error = dbTask.getException() != null ? dbTask.getException().getMessage() : "Database Error";
+                                                            Toast.makeText(RegisterActivity.this, "Error saving data: " + error, Toast.LENGTH_LONG).show();
+                                                        }
+                                                    });
+                                        } else {
+                                            btnSignUp.setEnabled(true);
+                                            if (authTask.getException() instanceof FirebaseAuthUserCollisionException) {
+                                                etEmail.setError("Email is already in use");
+                                                etEmail.requestFocus();
+                                                Toast.makeText(RegisterActivity.this, "Email already registered.", Toast.LENGTH_LONG).show();
+                                            } else {
+                                                String error = authTask.getException() != null ? authTask.getException().getMessage() : "Auth Error";
+                                                Toast.makeText(RegisterActivity.this, "Registration failed: " + error, Toast.LENGTH_LONG).show();
+                                            }
+                                        }
+                                    });
+                        }
                     } else {
                         btnSignUp.setEnabled(true);
-                        String error = task.getException() != null ? task.getException().getMessage() : "Auth Error";
-                        if (task.getException() instanceof FirebaseAuthUserCollisionException) {
-                            Toast.makeText(RegisterActivity.this, "Email already registered.", Toast.LENGTH_LONG).show();
-                        } else {
-                            Toast.makeText(RegisterActivity.this, "Registration failed: " + error, Toast.LENGTH_LONG).show();
-                        }
+                        String error = task.getException() != null ? task.getException().getMessage() : "Firestore Error";
+                        Toast.makeText(RegisterActivity.this, "Error checking username: " + error, Toast.LENGTH_LONG).show();
                     }
                 });
     }
