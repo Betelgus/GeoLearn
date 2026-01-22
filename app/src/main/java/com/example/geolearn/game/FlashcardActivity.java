@@ -103,11 +103,27 @@ public class FlashcardActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Determines if the current user is a Guest or Registered.
+     * Priority:
+     * 1. Intent Flag ("FORCE_GUEST") -> If true, force guest mode.
+     * 2. Firebase Auth -> If logged in, set as User.
+     */
     private void checkUserSession() {
+        // 1. Check if the previous screen explicitely said "Be a Guest"
+        boolean forcedGuest = getIntent().getBooleanExtra("FORCE_GUEST", false);
+
+        if (forcedGuest) {
+            // FORCE GUEST MODE (Ignores Firebase login)
+            isGuest = true;
+            userId = null;
+            btnBookmark.setVisibility(View.GONE);
+            return; // Stop here!
+        }
+
+        // 2. Normal Check (Only runs if not forced)
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
-        // Logic: If user is logged in AND not anonymous, they are a "User".
-        // Otherwise, they are a "Guest".
         if (user != null && !user.isAnonymous()) {
             isGuest = false;
             userId = user.getUid();
