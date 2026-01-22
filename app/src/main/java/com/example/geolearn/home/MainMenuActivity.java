@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -17,21 +18,13 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-// --- Imports for Logout Logic ---
+import com.example.geolearn.R;
 import com.example.geolearn.auth.LoginActivity;
 import com.example.geolearn.auth.UserSession;
-import com.example.geolearn.feedback.feedback; // Ensure correct import
 import com.example.geolearn.feedback.FeedbackActivity;
 import com.example.geolearn.feedback.FeedbackHistory;
-import com.example.geolearn.game.FlashcardActivity; // Changed to match your imports
+import com.example.geolearn.feedback.feedback;
 import com.example.geolearn.game.FlashcardSelectionActivity;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
-// --------------------------------
-
-import com.example.geolearn.profile.BookmarksActivity;
 import com.example.geolearn.game.GameAnalysisActivity;
 import com.example.geolearn.game.GameCategoryActivity;
 import com.example.geolearn.profile.BookmarksActivity;
@@ -41,7 +34,9 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
@@ -50,6 +45,8 @@ import java.util.List;
 public class MainMenuActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     private DrawerLayout drawerLayout;
+    private TextView tvMasteryPercent;
+    private ProgressBar pbMastery;
 
     // --- Feedback Variables ---
     private RecyclerView rvHomeFeedback;
@@ -102,6 +99,8 @@ public class MainMenuActivity extends AppCompatActivity implements NavigationVie
         updateDashboardCard();
         // Also refresh header in case user changed profile details
         updateNavHeader();
+        // Reload feedback in case user added one recently
+        loadCommunityFeedback();
     }
 
     /**
@@ -156,8 +155,8 @@ public class MainMenuActivity extends AppCompatActivity implements NavigationVie
     private void updateDashboardCard() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) {
-            tvMasteryPercent.setText("0%");
-            pbMastery.setProgress(0);
+            if (tvMasteryPercent != null) tvMasteryPercent.setText("0%");
+            if (pbMastery != null) pbMastery.setProgress(0);
             return;
         }
 
@@ -184,8 +183,8 @@ public class MainMenuActivity extends AppCompatActivity implements NavigationVie
                             percentage = (int) ((totalEarned * 100) / totalPossible);
                         }
 
-                        tvMasteryPercent.setText(percentage + "%");
-                        pbMastery.setProgress(percentage);
+                        if (tvMasteryPercent != null) tvMasteryPercent.setText(percentage + "%");
+                        if (pbMastery != null) pbMastery.setProgress(percentage);
                     } else {
                         Log.e("MainMenu", "Error getting score documents: ", task.getException());
                     }
@@ -228,11 +227,13 @@ public class MainMenuActivity extends AppCompatActivity implements NavigationVie
 
         // D. "Tap to view all..." (Text Click)
         TextView tvViewAll = findViewById(R.id.tvTapToViewAll);
-        tvViewAll.setOnClickListener(v -> {
-            // Navigate to the FeedbackActivity which uses activity_feedback.xml
-            Intent intent = new Intent(MainMenuActivity.this, FeedbackActivity.class);
-            startActivity(intent);
-        });
+        if (tvViewAll != null) {
+            tvViewAll.setOnClickListener(v -> {
+                // Navigate to the FeedbackActivity which uses activity_feedback.xml
+                Intent intent = new Intent(MainMenuActivity.this, FeedbackActivity.class);
+                startActivity(intent);
+            });
+        }
     }
 
     private void loadCommunityFeedback() {
@@ -349,12 +350,5 @@ public class MainMenuActivity extends AppCompatActivity implements NavigationVie
         } else {
             super.onBackPressed();
         }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        // Reload feedback in case user added one recently
-        loadCommunityFeedback();
     }
 }
