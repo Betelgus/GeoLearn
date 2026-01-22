@@ -12,6 +12,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
+import com.example.geolearn.feedback.FeedbackActivity;
 import com.example.geolearn.game.FlashcardSelectionActivity; // Make sure this matches your package
 import com.example.geolearn.game.GameCategoryActivity;
 import com.example.geolearn.R;
@@ -111,6 +112,7 @@ public class GuestMainMenuActivity extends AppCompatActivity {
     private void startQuizWithDifficulty(String level) {
         Intent intent = new Intent(this, GameCategoryActivity.class);
         intent.putExtra("DIFFICULTY_LEVEL", level);
+        intent.putExtra("IS_GUEST_MODE", true);
         startActivity(intent);
     }
 }

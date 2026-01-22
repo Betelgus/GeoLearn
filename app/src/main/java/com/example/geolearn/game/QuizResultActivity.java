@@ -12,8 +12,10 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.geolearn.R;
 import com.example.geolearn.home.MainMenuActivity;
+import com.example.geolearn.home.GuestMainMenuActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.HashMap;
@@ -39,6 +41,7 @@ public class QuizResultActivity extends AppCompatActivity {
         int totalQuestions = getIntent().getIntExtra("TOTAL_QUESTIONS", 10);
         String timeTaken = getIntent().getStringExtra("TIME_TAKEN");
         String quizType = getIntent().getStringExtra("QUIZ_TYPE");
+        boolean isGuest = getIntent().getBooleanExtra("IS_GUEST_MODE", false);
 
         if (timeTaken == null) timeTaken = "--:--";
         if (quizType == null) quizType = "unknown";
@@ -57,20 +60,38 @@ public class QuizResultActivity extends AppCompatActivity {
         }
         progressScore.setProgress(percentage);
 
-        saveScoreToFirestore(score, totalQuestions, timeTaken, quizType);
+        saveScoreToFirestore(score, totalQuestions, timeTaken, quizType, isGuest);
 
         btnBackToMenu.setOnClickListener(v -> {
-            Intent intent = new Intent(QuizResultActivity.this, MainMenuActivity.class);
+            Intent intent;
+            if (isGuest) {
+                // If the user is a guest, direct them to the Guest Main Menu
+                Log.d(TAG, "Navigating to GuestMainMenuActivity");
+                intent = new Intent(QuizResultActivity.this, GuestMainMenuActivity.class);
+            } else {
+                // Otherwise, direct them to the regular Main Menu for registered users
+                Log.d(TAG, "Navigating to MainMenuActivity");
+                intent = new Intent(QuizResultActivity.this, MainMenuActivity.class);
+            }
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
             finish();
         });
     }
 
-    private void saveScoreToFirestore(int score, int totalQuestions, String timeTaken, String quizType) {
+    private void saveScoreToFirestore(int score, int totalQuestions, String timeTaken, String quizType, boolean isGuest) {
+        if (isGuest) {
+            Log.d("Firestore", "Guest mode is active. Score will not be saved.");
+            return; // Do not save score for guests
+        }
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+
+        if (currentUser == null) {
+            Log.w("Firestore", "User is not logged in. Cannot save score.");
+            return; // Secondary check, just in case
+        }
+        String userId = currentUser.getUid();
         if (currentUser != null) {
-            String userId = currentUser.getUid();
             FirebaseFirestore db = FirebaseFirestore.getInstance();
 
             Map<String, Object> quizResult = new HashMap<>();
@@ -79,7 +100,7 @@ public class QuizResultActivity extends AppCompatActivity {
             quizResult.put("score", score);
             quizResult.put("totalQuestions", totalQuestions);
             quizResult.put("timeTaken", timeTaken);
-            quizResult.put("timestamp", System.currentTimeMillis());
+            quizResult.put("timestamp", FieldValue.serverTimestamp());
 
             db.collection("scores") // Changed from "quiz_results" to "scores"
                     .add(quizResult)

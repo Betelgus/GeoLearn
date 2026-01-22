@@ -25,6 +25,9 @@ public class GameCategoryActivity extends AppCompatActivity {
         findViewById(R.id.cardModeTrivia).setOnClickListener(v -> {
             Intent intent = new Intent(this, QuizUIActivity.class);
             intent.putExtra("DIFFICULTY_LEVEL", difficulty);
+            if (getIntent().getBooleanExtra("IS_GUEST_MODE", false)) {
+                intent.putExtra("IS_GUEST_MODE", true);
+            }
             startActivity(intent);
         });
 
@@ -32,7 +35,11 @@ public class GameCategoryActivity extends AppCompatActivity {
         findViewById(R.id.cardModeFlag).setOnClickListener(v -> {
             Intent intent = new Intent(this, FlagGuessActivity.class);
             intent.putExtra("DIFFICULTY_LEVEL", difficulty);
+            if (getIntent().getBooleanExtra("IS_GUEST_MODE", false)) {
+                intent.putExtra("IS_GUEST_MODE", true);
+            }
             startActivity(intent);
         });
+
     }
 }

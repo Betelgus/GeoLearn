@@ -287,6 +287,9 @@ public class QuizUIActivity extends AppCompatActivity {
         intent.putExtra("TOTAL_QUESTIONS", questionList.size());
         intent.putExtra("TIME_TAKEN", formattedTime);
         intent.putExtra("QUIZ_TYPE", quizType);
+        if (getIntent().getBooleanExtra("IS_GUEST_MODE", false)) {
+            intent.putExtra("IS_GUEST_MODE", true);
+        }
 
         startActivity(intent);
         finish();
