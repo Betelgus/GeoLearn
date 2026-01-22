@@ -18,7 +18,7 @@ public class FeedbackAdapter extends RecyclerView.Adapter<FeedbackAdapter.ViewHo
     private OnItemClickListener listener;
 
     public interface OnItemClickListener {
-        void onItemClick(feedback feedback);
+        void onItemClick(feedback Feedback);
     }
 
     public FeedbackAdapter(List<feedback> feedbackList, OnItemClickListener listener) {

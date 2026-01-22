@@ -305,12 +305,11 @@
                     android:layout_marginTop="24dp"
                     app:cardCornerRadius="20dp"
                     app:cardElevation="4dp"
+                    android:backgroundTint="@color/surface_card"
                     app:layout_constraintTop_toBottomOf="@id/rowLockedFeatures"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:backgroundTint="@color/surface_card">
+                    app:layout_constraintBottom_toBottomOf="parent">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -340,74 +339,25 @@
                                 android:layout_marginStart="8dp"/>
                         </LinearLayout>
 
-                        <LinearLayout
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/rvHomeFeedback"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:background="@drawable/rounded_pill_gray"
-                            android:padding="12dp"
-                            android:layout_marginBottom="8dp">
+                            android:nestedScrollingEnabled="false"
+                            android:layout_marginBottom="8dp"/>
 
-                            <ImageView
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
-                                android:src="@android:drawable/sym_def_app_icon"
-                                app:tint="@color/text_secondary"/>
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:orientation="vertical"
-                                android:layout_marginStart="12dp">
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Sarah K."
-                                    android:textStyle="bold"
-                                    android:textSize="12sp"
-                                    android:textColor="@color/text_primary"/>
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Great for learning geography basics!"
-                                    android:textSize="12sp"
-                                    android:textColor="@color/text_secondary"/>
-                            </LinearLayout>
-                        </LinearLayout>
-
-                        <LinearLayout
+                        <TextView
+                            android:id="@+id/tvTapToViewAll"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:background="@drawable/rounded_pill_gray"
-                            android:padding="12dp">
-
-                            <ImageView
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
-                                android:src="@android:drawable/sym_def_app_icon"
-                                app:tint="@color/text_secondary"/>
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:orientation="vertical"
-                                android:layout_marginStart="12dp">
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Mike T."
-                                    android:textStyle="bold"
-                                    android:textSize="12sp"
-                                    android:textColor="@color/text_primary"/>
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Simple and effective design."
-                                    android:textSize="12sp"
-                                    android:textColor="@color/text_secondary"/>
-                            </LinearLayout>
-                        </LinearLayout>
+                            android:text="Tap to view all..."
+                            android:gravity="center"
+                            android:textSize="12sp"
+                            android:textColor="@color/primary"
+                            android:textStyle="bold"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:layout_marginTop="4dp"/>
 
                         <TextView
                             android:layout_width="match_parent"
@@ -417,7 +367,7 @@
                             android:textSize="12sp"
                             android:textColor="@color/text_secondary"
                             android:textStyle="italic"
-                            android:layout_marginTop="12dp"/>
+                            android:layout_marginTop="8dp"/>
 
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>

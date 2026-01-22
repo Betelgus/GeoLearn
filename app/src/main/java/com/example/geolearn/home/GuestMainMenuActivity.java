@@ -12,6 +12,17 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import com.example.geolearn.feedback.feedback;
+import com.example.geolearn.feedback.FeedbackActivity;
+import com.example.geolearn.home.HomeFeedbackAdapter;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.example.geolearn.feedback.FeedbackActivity;
 import com.example.geolearn.game.FlashcardSelectionActivity; // Make sure this matches your package
 import com.example.geolearn.game.GameCategoryActivity;
@@ -23,11 +34,33 @@ import com.google.android.material.navigation.NavigationView;
 public class GuestMainMenuActivity extends AppCompatActivity {
 
     private DrawerLayout drawerLayout;
+    private RecyclerView rvHomeFeedback;
+    private HomeFeedbackAdapter homeAdapter;
+    private List<feedback> homeFeedbackList;
+    private FirebaseFirestore db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_menu_guest);
+
+        db = FirebaseFirestore.getInstance();
+
+        // Setup RecyclerView for Feedback
+        rvHomeFeedback = findViewById(R.id.rvHomeFeedback);
+        rvHomeFeedback.setLayoutManager(new LinearLayoutManager(this));
+        homeFeedbackList = new ArrayList<>();
+        homeAdapter = new HomeFeedbackAdapter(homeFeedbackList);
+        rvHomeFeedback.setAdapter(homeAdapter);
+
+        loadCommunityFeedback(); // Initial load
+
+        // Update the existing "View All" listener
+        findViewById(R.id.tvTapToViewAll).setOnClickListener(v -> {
+            Intent intent = new Intent(this, FeedbackActivity.class);
+            intent.putExtra("IS_GUEST", true);
+            startActivity(intent);
+        });
 
         // Setup Toolbar & Drawer
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -83,6 +116,12 @@ public class GuestMainMenuActivity extends AppCompatActivity {
         });
     }
 
+        @Override
+        protected void onResume() {
+            super.onResume();
+            loadCommunityFeedback(); // Refresh when returning to the page
+        }
+
     private void redirectToLogin(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
         Intent intent = new Intent(this, LoginActivity.class);
@@ -114,5 +153,43 @@ public class GuestMainMenuActivity extends AppCompatActivity {
         intent.putExtra("DIFFICULTY_LEVEL", level);
         intent.putExtra("IS_GUEST_MODE", true);
         startActivity(intent);
+    }
+
+    private void loadCommunityFeedback() {
+        db.collection("feedback")
+                .orderBy("timestamp", Query.Direction.DESCENDING)
+                .limit(3)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    homeFeedbackList.clear();
+                    if (queryDocumentSnapshots.isEmpty()) {
+                        homeAdapter.notifyDataSetChanged();
+                        return;
+                    }
+                    for (DocumentSnapshot doc : queryDocumentSnapshots) {
+                        feedback f = doc.toObject(feedback.class);
+                        if (f != null) {
+                            fetchUsernameAndAddToList(f);
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> android.util.Log.e("GuestMenu", "Error loading feedback", e));
+    }
+
+    private void fetchUsernameAndAddToList(feedback f) {
+        db.collection("users").document(f.userId)
+                .get()
+                .addOnSuccessListener(userDoc -> {
+                    if (userDoc.exists()) {
+                        f.username = userDoc.getString("username");
+                    } else {
+                        f.username = "Anonymous";
+                    }
+                    if (homeFeedbackList.size() < 3) {
+                        homeFeedbackList.add(f);
+                        homeFeedbackList.sort((a, b) -> Long.compare(b.timestamp, a.timestamp));
+                        homeAdapter.notifyDataSetChanged();
+                    }
+                });
     }
 }
