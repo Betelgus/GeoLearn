@@ -14,6 +14,7 @@ import com.example.geolearn.R;
 import com.example.geolearn.home.MainMenuActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FieldValue; // Import FieldValue
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.HashMap;
@@ -35,14 +36,18 @@ public class QuizResultActivity extends AppCompatActivity {
         ProgressBar progressScore = findViewById(R.id.progressScore);
         Button btnBackToMenu = findViewById(R.id.btnBackToMenu);
 
+        // 1. Get Extras
         int score = getIntent().getIntExtra("SCORE", 0);
         int totalQuestions = getIntent().getIntExtra("TOTAL_QUESTIONS", 10);
         String timeTaken = getIntent().getStringExtra("TIME_TAKEN");
-        String quizType = getIntent().getStringExtra("QUIZ_TYPE");
+
+        // Get Difficulty (Default to Beginner if missing)
+        String difficulty = getIntent().getStringExtra("DIFFICULTY");
+        if (difficulty == null) difficulty = "Beginner";
 
         if (timeTaken == null) timeTaken = "--:--";
-        if (quizType == null) quizType = "unknown";
 
+        // 2. Setup UI
         int correct = score;
         int incorrect = totalQuestions - score;
 
@@ -57,7 +62,8 @@ public class QuizResultActivity extends AppCompatActivity {
         }
         progressScore.setProgress(percentage);
 
-        saveScoreToFirestore(score, totalQuestions, timeTaken, quizType);
+        // 3. Save Score with Difficulty and Correct Timestamp
+        saveScoreToFirestore(score, totalQuestions, timeTaken, difficulty, "Trivia Quiz");
 
         btnBackToMenu.setOnClickListener(v -> {
             Intent intent = new Intent(QuizResultActivity.this, MainMenuActivity.class);
@@ -67,21 +73,24 @@ public class QuizResultActivity extends AppCompatActivity {
         });
     }
 
-    private void saveScoreToFirestore(int score, int totalQuestions, String timeTaken, String quizType) {
+    private void saveScoreToFirestore(int score, int totalQuestions, String timeTaken, String difficulty, String gameType) {
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+
         if (currentUser != null) {
             String userId = currentUser.getUid();
             FirebaseFirestore db = FirebaseFirestore.getInstance();
 
             Map<String, Object> quizResult = new HashMap<>();
             quizResult.put("userId", userId);
-            quizResult.put("quizType", quizType); // This now includes difficulty
+            quizResult.put("difficulty", difficulty); // Stores "Beginner", "Intermediate", etc.
+            quizResult.put("gameType", gameType);
             quizResult.put("score", score);
             quizResult.put("totalQuestions", totalQuestions);
             quizResult.put("timeTaken", timeTaken);
-            quizResult.put("timestamp", System.currentTimeMillis());
+            // FIX: Use FieldValue.serverTimestamp()
+            quizResult.put("timestamp", FieldValue.serverTimestamp());
 
-            db.collection("scores") // Changed from "quiz_results" to "scores"
+            db.collection("Scores") // Collection name "Scores"
                     .add(quizResult)
                     .addOnSuccessListener(documentReference -> {
                         Log.d(TAG, "Score saved with ID: " + documentReference.getId());

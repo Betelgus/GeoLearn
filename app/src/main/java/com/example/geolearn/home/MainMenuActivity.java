@@ -2,8 +2,11 @@ package com.example.geolearn.home;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -12,13 +15,16 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
-// --- Imports for Logout Logic ---
+// --- Imports for Auth & Database ---
 import com.example.geolearn.auth.LoginActivity;
 import com.example.geolearn.auth.UserSession;
 import com.example.geolearn.feedback.FeedbackActivity;
 import com.example.geolearn.feedback.FeedbackHistory;
 import com.example.geolearn.game.FlashcardSelectionActivity;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 // --------------------------------
 
 import com.example.geolearn.profile.BookmarksActivity;
@@ -34,16 +40,26 @@ public class MainMenuActivity extends AppCompatActivity implements NavigationVie
 
     private DrawerLayout drawerLayout;
 
+    // --- NEW: Dashboard UI Elements ---
+    private TextView tvMasteryPercent;
+    private ProgressBar pbMastery;
+
+    // --- NEW: Firebase Database ---
+    private FirebaseFirestore db;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_menu);
 
-        // 1. Setup Toolbar
+        // 1. Initialize Firebase
+        db = FirebaseFirestore.getInstance();
+
+        // 2. Setup Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        // 2. Setup Sidebar (Drawer)
+        // 3. Setup Navigation Drawer
         drawerLayout = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
 
@@ -55,7 +71,66 @@ public class MainMenuActivity extends AppCompatActivity implements NavigationVie
 
         navigationView.setNavigationItemSelectedListener(this);
 
-        // 3. --- EXISTING CARD LISTENERS ---
+        // 4. --- NEW: Bind Dashboard Views ---
+        tvMasteryPercent = findViewById(R.id.tvMasteryPercent);
+        pbMastery = findViewById(R.id.pbMastery);
+
+        // 5. Setup Card Click Listeners
+        setupClickListeners();
+    }
+
+    // --- NEW: Update Dashboard when returning to menu ---
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updateDashboardCard();
+    }
+
+    private void updateDashboardCard() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) {
+            // Reset if not logged in
+            tvMasteryPercent.setText("0%");
+            pbMastery.setProgress(0);
+            return;
+        }
+
+        // Fetch all scores for this user to calculate "Overall Mastery"
+        db.collection("Scores")
+                .whereEqualTo("userId", user.getUid())
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        long totalEarned = 0;
+                        long totalPossible = 0;
+
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            Long score = document.getLong("score");
+                            Long totalQ = document.getLong("totalQuestions");
+
+                            if (score != null && totalQ != null) {
+                                totalEarned += score;
+                                totalPossible += totalQ;
+                            }
+                        }
+
+                        // Calculate Percentage
+                        int percentage = 0;
+                        if (totalPossible > 0) {
+                            percentage = (int) ((totalEarned * 100) / totalPossible);
+                        }
+
+                        // Update the Card UI
+                        tvMasteryPercent.setText(percentage + "%");
+                        pbMastery.setProgress(percentage);
+                    } else {
+                        Log.e("MainMenu", "Error getting score documents: ", task.getException());
+                    }
+                });
+    }
+
+    private void setupClickListeners() {
+        // Dashboard Card -> Goes to detailed progress page
         findViewById(R.id.cardDashboard).setOnClickListener(v ->
                 startActivity(new Intent(this, ProgressDashboardActivity.class)));
 
@@ -70,9 +145,7 @@ public class MainMenuActivity extends AppCompatActivity implements NavigationVie
         findViewById(R.id.cardBookmarks).setOnClickListener(v ->
                 startActivity(new Intent(this, BookmarksActivity.class)));
 
-        // 4. --- FEEDBACK LISTENER ---
         findViewById(R.id.cardFeedback).setOnClickListener(v -> {
-            // Optional: Check if guest before allowing feedback
             Intent intent = new Intent(MainMenuActivity.this, FeedbackActivity.class);
             intent.putExtra("IS_GUEST", UserSession.isGuestMode(this));
             startActivity(intent);
@@ -85,26 +158,26 @@ public class MainMenuActivity extends AppCompatActivity implements NavigationVie
         bottomSheetDialog.setContentView(sheetView);
 
         sheetView.findViewById(R.id.cardBeginner).setOnClickListener(v -> {
-            startQuizWithDifficulty("Beginner");
+            startQuiz("Beginner");
             bottomSheetDialog.dismiss();
         });
 
         sheetView.findViewById(R.id.cardIntermediate).setOnClickListener(v -> {
-            startQuizWithDifficulty("Intermediate");
+            startQuiz("Intermediate");
             bottomSheetDialog.dismiss();
         });
 
         sheetView.findViewById(R.id.cardAdvanced).setOnClickListener(v -> {
-            startQuizWithDifficulty("Advanced");
+            startQuiz("Advanced");
             bottomSheetDialog.dismiss();
         });
 
         bottomSheetDialog.show();
     }
 
-    private void startQuizWithDifficulty(String level) {
+    private void startQuiz(String difficulty) {
         Intent intent = new Intent(MainMenuActivity.this, GameCategoryActivity.class);
-        intent.putExtra("DIFFICULTY_LEVEL", level);
+        intent.putExtra("DIFFICULTY", difficulty);
         startActivity(intent);
     }
 
@@ -113,7 +186,7 @@ public class MainMenuActivity extends AppCompatActivity implements NavigationVie
         int id = item.getItemId();
 
         if (id == R.id.nav_home) {
-            // Already on home screen
+            // Already here
         } else if (id == R.id.nav_settings) {
             startActivity(new Intent(this, SettingsActivity.class));
         } else if (id == R.id.nav_feedback) {
@@ -121,28 +194,19 @@ public class MainMenuActivity extends AppCompatActivity implements NavigationVie
         } else if (id == R.id.nav_about) {
             startActivity(new Intent(this, AboutActivity.class));
         } else if (id == R.id.nav_logout) {
-            performLogout(); // <--- Call the logout method
+            performLogout();
         }
 
         drawerLayout.closeDrawer(GravityCompat.START);
         return true;
     }
 
-    // --- LOGOUT LOGIC ---
     private void performLogout() {
-        // 1. Clear Local Session (SharedPreferences)
         UserSession.clear(this);
-
-        // 2. Sign out from Firebase Auth
         FirebaseAuth.getInstance().signOut();
-
-        // 3. Navigate back to LoginActivity
         Intent intent = new Intent(this, LoginActivity.class);
-        // FLAG_ACTIVITY_CLEAR_TASK clears the existing activity stack so the user cannot press "Back" to return here.
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
-
-        // 4. Close this activity
         finish();
     }
 

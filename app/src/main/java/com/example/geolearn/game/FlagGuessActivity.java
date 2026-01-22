@@ -233,6 +233,8 @@ public class FlagGuessActivity extends AppCompatActivity {
         }.start();
     }
 
+    // ... [Inside FlagGuessActivity class, keep existing code] ...
+
     private void finishGame() {
         if (timer != null) timer.cancel();
 
@@ -243,15 +245,19 @@ public class FlagGuessActivity extends AppCompatActivity {
         int minutes = (int) ((timeElapsed / (1000 * 60)) % 60);
         String formattedTime = String.format("%02d:%02d", minutes, seconds);
 
-        String quizType = "flag" + currentDifficulty.substring(0, 1).toUpperCase() + currentDifficulty.substring(1);
+        // 1. Correctly point to FlagResultActivity
+        Intent intent = new Intent(this, FlagResultActivity.class);
 
-        Intent intent = new Intent(this, QuizResultActivity.class);
         intent.putExtra("SCORE", score);
         intent.putExtra("TOTAL_QUESTIONS", questionList.size());
         intent.putExtra("TIME_TAKEN", formattedTime);
-        intent.putExtra("QUIZ_TYPE", quizType);
+
+        // 2. CRITICAL: Pass the difficulty string so the Dashboard can read it later
+        intent.putExtra("DIFFICULTY", currentDifficulty);
 
         startActivity(intent);
         finish();
     }
+
+// ... [End of class] ...
 }
