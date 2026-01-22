@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -15,36 +16,34 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
-// --- Imports for Auth & Database ---
+import com.example.geolearn.R;
 import com.example.geolearn.auth.LoginActivity;
 import com.example.geolearn.auth.UserSession;
 import com.example.geolearn.feedback.FeedbackActivity;
 import com.example.geolearn.feedback.FeedbackHistory;
+import com.example.geolearn.game.FlashcardActivity; // Changed to match your imports
 import com.example.geolearn.game.FlashcardSelectionActivity;
+import com.example.geolearn.game.GameAnalysisActivity;
+import com.example.geolearn.game.GameCategoryActivity;
+import com.example.geolearn.profile.BookmarksActivity;
+import com.example.geolearn.profile.ProgressDashboardActivity;
+import com.example.geolearn.profile.SettingsActivity;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-// --------------------------------
-
-import com.example.geolearn.profile.BookmarksActivity;
-import com.example.geolearn.game.GameAnalysisActivity;
-import com.example.geolearn.game.GameCategoryActivity;
-import com.example.geolearn.profile.ProgressDashboardActivity;
-import com.example.geolearn.R;
-import com.example.geolearn.profile.SettingsActivity;
-import com.google.android.material.bottomsheet.BottomSheetDialog;
-import com.google.android.material.navigation.NavigationView;
 
 public class MainMenuActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     private DrawerLayout drawerLayout;
 
-    // --- NEW: Dashboard UI Elements ---
+    // Dashboard UI Elements
     private TextView tvMasteryPercent;
     private ProgressBar pbMastery;
 
-    // --- NEW: Firebase Database ---
+    // Firebase Database
     private FirebaseFirestore db;
 
     @Override
@@ -71,31 +70,85 @@ public class MainMenuActivity extends AppCompatActivity implements NavigationVie
 
         navigationView.setNavigationItemSelectedListener(this);
 
-        // 4. --- NEW: Bind Dashboard Views ---
+        // --- NEW: Update Header ---
+        updateNavHeader();
+
+        // 4. Bind Dashboard Views
         tvMasteryPercent = findViewById(R.id.tvMasteryPercent);
         pbMastery = findViewById(R.id.pbMastery);
 
         // 5. Setup Card Click Listeners
         setupClickListeners();
+
+        // Update Dashboard Data
+        updateDashboardCard();
     }
 
-    // --- NEW: Update Dashboard when returning to menu ---
     @Override
     protected void onResume() {
         super.onResume();
         updateDashboardCard();
+        // Also refresh header in case user changed profile details
+        updateNavHeader();
     }
 
+    /**
+     * Updates the Navigation Header with Username and Email from Firestore.
+     */
+    private void updateNavHeader() {
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        View headerView = navigationView.getHeaderView(0);
+
+        TextView navName = headerView.findViewById(R.id.nav_header_name);
+        TextView navEmail = headerView.findViewById(R.id.nav_header_email);
+        ImageView navImage = headerView.findViewById(R.id.nav_header_image);
+
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+        if (user != null) {
+            if (user.isAnonymous()) {
+                navName.setText("Guest");
+                navEmail.setText("Sign up to save progress");
+                navImage.setImageResource(R.mipmap.ic_launcher_round);
+            } else {
+                String userId = user.getUid();
+                db.collection("users").document(userId).get()
+                        .addOnSuccessListener(documentSnapshot -> {
+                            if (documentSnapshot.exists()) {
+                                // Fetch 'username' field
+                                String username = documentSnapshot.getString("username");
+                                String email = documentSnapshot.getString("email");
+
+                                if (username != null && !username.isEmpty()) {
+                                    navName.setText(username);
+                                } else {
+                                    navName.setText("GeoStudent");
+                                }
+
+                                if (email != null && !email.isEmpty()) {
+                                    navEmail.setText(email);
+                                } else {
+                                    navEmail.setText(user.getEmail());
+                                }
+
+                                // Set the User Icon
+                                navImage.setImageResource(android.R.drawable.ic_menu_myplaces);
+                            }
+                        })
+                        .addOnFailureListener(e -> Log.e("MainMenu", "Error loading user header", e));
+            }
+        }
+    }
+
+    // --- YOUR ORIGINAL DASHBOARD CODE (UNCHANGED) ---
     private void updateDashboardCard() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) {
-            // Reset if not logged in
             tvMasteryPercent.setText("0%");
             pbMastery.setProgress(0);
             return;
         }
 
-        // Fetch all scores for this user to calculate "Overall Mastery"
         db.collection("Scores")
                 .whereEqualTo("userId", user.getUid())
                 .get()
@@ -114,13 +167,11 @@ public class MainMenuActivity extends AppCompatActivity implements NavigationVie
                             }
                         }
 
-                        // Calculate Percentage
                         int percentage = 0;
                         if (totalPossible > 0) {
                             percentage = (int) ((totalEarned * 100) / totalPossible);
                         }
 
-                        // Update the Card UI
                         tvMasteryPercent.setText(percentage + "%");
                         pbMastery.setProgress(percentage);
                     } else {
@@ -130,7 +181,6 @@ public class MainMenuActivity extends AppCompatActivity implements NavigationVie
     }
 
     private void setupClickListeners() {
-        // Dashboard Card -> Goes to detailed progress page
         findViewById(R.id.cardDashboard).setOnClickListener(v ->
                 startActivity(new Intent(this, ProgressDashboardActivity.class)));
 

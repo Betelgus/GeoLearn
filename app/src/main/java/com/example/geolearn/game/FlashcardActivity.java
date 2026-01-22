@@ -23,6 +23,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
@@ -35,18 +36,18 @@ import java.util.Set;
 
 public class FlashcardActivity extends AppCompatActivity {
 
-    // UI Components
+    // --- UI Components ---
     private ImageView imgFlag;
     private TextView tvCountryName, tvCapital, tvRegion;
     private Button btnPrev, btnNext;
     private ImageButton btnBookmark;
     private ProgressBar loadingProgressBar;
 
-    // Data Variables
+    // --- Data Variables ---
     private List<Country> countryList = new ArrayList<>();
     private int currentIndex = 0;
 
-    // Firebase
+    // --- Firebase ---
     private FirebaseFirestore db;
     private Set<String> bookmarkedIds = new HashSet<>();
     private String userId;
@@ -76,7 +77,8 @@ public class FlashcardActivity extends AppCompatActivity {
         // 2. Setup Firebase
         db = FirebaseFirestore.getInstance();
 
-        // 3. CHECK SESSION (Hides button if Guest)
+        // 3. CHECK SESSION (Crucial Step)
+        // This determines if the user is a Guest or a Registered User
         checkUserSession();
 
         // 4. Load Data
@@ -88,6 +90,12 @@ public class FlashcardActivity extends AppCompatActivity {
         btnBookmark.setOnClickListener(v -> toggleBookmark());
     }
 
+    /**
+     * Determines if the current user is a Guest or Registered.
+     * Logic:
+     * - Guest/Anonymous -> Hide Bookmark Button
+     * - Registered User -> Show Bookmark Button & Load Bookmarks
+     */
     private void checkUserSession() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
@@ -110,7 +118,7 @@ public class FlashcardActivity extends AppCompatActivity {
 
         if (loadingProgressBar != null) loadingProgressBar.setVisibility(View.VISIBLE);
 
-        com.google.firebase.firestore.Query query;
+        Query query;
 
         if (category.equals("random")) {
             query = db.collection("flashcards");
@@ -150,7 +158,7 @@ public class FlashcardActivity extends AppCompatActivity {
     }
 
     private void setupFirestoreListener() {
-        // Double check: Never run this if guest
+        // Safety Check: Never run this if guest
         if (isGuest || userId == null) return;
 
         db.collection("users")
@@ -189,9 +197,10 @@ public class FlashcardActivity extends AppCompatActivity {
             tvCapital.setText("N/A");
         }
 
-        // Image Loading
+        // Image Loading Logic
         if (country.flags != null && country.flags.png != null) {
             String imgName = country.flags.png.toLowerCase().replace(" ", "_");
+            // Remove extension if present
             if (imgName.contains(".")) imgName = imgName.substring(0, imgName.lastIndexOf('.'));
 
             int resId = getResources().getIdentifier(imgName, "drawable", getPackageName());
@@ -199,11 +208,13 @@ public class FlashcardActivity extends AppCompatActivity {
             if (resId != 0) {
                 Glide.with(this).load(resId).into(imgFlag);
             } else {
+                // Fallback icon
                 imgFlag.setImageResource(android.R.drawable.ic_menu_gallery);
             }
         }
 
-        // Visibility Check: Ensure button status is correct for every card
+        // --- VISIBILITY CHECK ---
+        // Ensure button status is correct for every card swap
         if (isGuest) {
             btnBookmark.setVisibility(View.GONE);
         } else {
@@ -219,18 +230,18 @@ public class FlashcardActivity extends AppCompatActivity {
         if (current.id == null) return;
 
         if (bookmarkedIds.contains(current.id)) {
-            // Filled Star
+            // Filled Star (Active)
             btnBookmark.setImageResource(android.R.drawable.btn_star_big_on);
             btnBookmark.setColorFilter(getResources().getColor(R.color.accent));
         } else {
-            // Outline Star
+            // Outline Star (Inactive)
             btnBookmark.setImageResource(android.R.drawable.btn_star_big_off);
             btnBookmark.setColorFilter(getResources().getColor(R.color.text_secondary));
         }
     }
 
     private void toggleBookmark() {
-        // Security check: Stop guests from clicking
+        // Double Security check: Stop guests from clicking even if button is somehow visible
         if (isGuest || userId == null) {
             Toast.makeText(this, "Please login to save bookmarks", Toast.LENGTH_SHORT).show();
             return;
@@ -250,9 +261,11 @@ public class FlashcardActivity extends AppCompatActivity {
                 .document(current.id);
 
         if (bookmarkedIds.contains(current.id)) {
+            // REMOVE
             docRef.delete().addOnSuccessListener(aVoid ->
                     Toast.makeText(this, "Removed bookmark", Toast.LENGTH_SHORT).show());
         } else {
+            // ADD
             Map<String, Object> data = new HashMap<>();
             data.put("timestamp", System.currentTimeMillis());
             data.put("name", current.name.common);
