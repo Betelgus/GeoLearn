@@ -233,8 +233,6 @@ public class FlagGuessActivity extends AppCompatActivity {
         }.start();
     }
 
-    // ... [Inside FlagGuessActivity class, keep existing code] ...
-
     private void finishGame() {
         if (timer != null) timer.cancel();
 
@@ -245,19 +243,24 @@ public class FlagGuessActivity extends AppCompatActivity {
         int minutes = (int) ((timeElapsed / (1000 * 60)) % 60);
         String formattedTime = String.format("%02d:%02d", minutes, seconds);
 
-        // 1. Correctly point to FlagResultActivity
-        Intent intent = new Intent(this, FlagResultActivity.class);
+        // MERGE: Point to the unified QuizResultActivity
+        Intent intent = new Intent(this, QuizResultActivity.class);
 
+        // Standard Extras
         intent.putExtra("SCORE", score);
         intent.putExtra("TOTAL_QUESTIONS", questionList.size());
         intent.putExtra("TIME_TAKEN", formattedTime);
+        intent.putExtra("GAME_TYPE", "Flag Quiz"); // Explicitly state the game type
 
-        // 2. CRITICAL: Pass the difficulty string so the Dashboard can read it later
+        // HAFIZ'S CHANGE: Pass the specific difficulty string
         intent.putExtra("DIFFICULTY", currentDifficulty);
+
+        // BONA'S CHANGE: Pass the Guest Mode flag if it exists
+        if (getIntent().getBooleanExtra("IS_GUEST_MODE", false)) {
+            intent.putExtra("IS_GUEST_MODE", true);
+        }
 
         startActivity(intent);
         finish();
     }
-
-// ... [End of class] ...
 }

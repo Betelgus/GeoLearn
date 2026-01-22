@@ -7,16 +7,14 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.appcompat.app.AppCompatActivity;
-
 import com.example.geolearn.R;
+import com.example.geolearn.home.GuestMainMenuActivity;
 import com.example.geolearn.home.MainMenuActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.FieldValue; // Import FieldValue
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,6 +27,7 @@ public class QuizResultActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_quiz_result);
 
+        // UI Initialization
         TextView tvScoreFraction = findViewById(R.id.tvScoreFraction);
         TextView tvCorrect = findViewById(R.id.tvCorrect);
         TextView tvIncorrect = findViewById(R.id.tvIncorrect);
@@ -36,21 +35,25 @@ public class QuizResultActivity extends AppCompatActivity {
         ProgressBar progressScore = findViewById(R.id.progressScore);
         Button btnBackToMenu = findViewById(R.id.btnBackToMenu);
 
-        // 1. Get Extras
+        // 1. GET DATA (Merged from both)
         int score = getIntent().getIntExtra("SCORE", 0);
         int totalQuestions = getIntent().getIntExtra("TOTAL_QUESTIONS", 10);
         String timeTaken = getIntent().getStringExtra("TIME_TAKEN");
 
-        // Get Difficulty (Default to Beginner if missing)
+        // Hafiz's Data: Difficulty & Game Type
         String difficulty = getIntent().getStringExtra("DIFFICULTY");
-        if (difficulty == null) difficulty = "Beginner";
+        if (difficulty == null) difficulty = "Beginner"; // Default
+        String gameType = getIntent().getStringExtra("GAME_TYPE");
+        if (gameType == null) gameType = "Trivia Quiz"; // Default
+
+        // Bona's Data: Guest Mode Flag
+        boolean isGuest = getIntent().getBooleanExtra("IS_GUEST_MODE", false);
 
         if (timeTaken == null) timeTaken = "--:--";
 
-        // 2. Setup UI
+        // 2. SETUP UI
         int correct = score;
         int incorrect = totalQuestions - score;
-
         tvScoreFraction.setText(score + "/" + totalQuestions);
         tvCorrect.setText(String.valueOf(correct));
         tvIncorrect.setText(String.valueOf(incorrect));
@@ -62,18 +65,34 @@ public class QuizResultActivity extends AppCompatActivity {
         }
         progressScore.setProgress(percentage);
 
-        // 3. Save Score with Difficulty and Correct Timestamp
-        saveScoreToFirestore(score, totalQuestions, timeTaken, difficulty, "Trivia Quiz");
+        // 3. SAVE LOGIC (Merged)
+        saveScoreToFirestore(score, totalQuestions, timeTaken, difficulty, gameType, isGuest);
 
+        // 4. NAVIGATION LOGIC (Bona's Logic for Guest routing)
         btnBackToMenu.setOnClickListener(v -> {
-            Intent intent = new Intent(QuizResultActivity.this, MainMenuActivity.class);
+            Intent intent;
+            if (isGuest) {
+                // Return to Guest Menu
+                intent = new Intent(QuizResultActivity.this, GuestMainMenuActivity.class);
+            } else {
+                // Return to Standard Menu
+                intent = new Intent(QuizResultActivity.this, MainMenuActivity.class);
+            }
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
             finish();
         });
     }
 
-    private void saveScoreToFirestore(int score, int totalQuestions, String timeTaken, String difficulty, String gameType) {
+    // Merged Save Function
+    private void saveScoreToFirestore(int score, int totalQuestions, String timeTaken,
+                                      String difficulty, String gameType, boolean isGuest) {
+
+        if (isGuest) {
+            Log.d(TAG, "Guest mode active. Skipping Firestore save.");
+            return;
+        }
+
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
 
         if (currentUser != null) {
@@ -82,15 +101,14 @@ public class QuizResultActivity extends AppCompatActivity {
 
             Map<String, Object> quizResult = new HashMap<>();
             quizResult.put("userId", userId);
-            quizResult.put("difficulty", difficulty); // Stores "Beginner", "Intermediate", etc.
+            quizResult.put("difficulty", difficulty);
             quizResult.put("gameType", gameType);
             quizResult.put("score", score);
             quizResult.put("totalQuestions", totalQuestions);
             quizResult.put("timeTaken", timeTaken);
-            // FIX: Use FieldValue.serverTimestamp()
             quizResult.put("timestamp", FieldValue.serverTimestamp());
 
-            db.collection("Scores") // Collection name "Scores"
+            db.collection("Scores")
                     .add(quizResult)
                     .addOnSuccessListener(documentReference -> {
                         Log.d(TAG, "Score saved with ID: " + documentReference.getId());
