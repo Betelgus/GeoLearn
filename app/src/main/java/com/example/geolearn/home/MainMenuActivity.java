@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -22,6 +23,7 @@ import com.example.geolearn.auth.UserSession;
 import com.example.geolearn.feedback.feedback; // Ensure correct import
 import com.example.geolearn.feedback.FeedbackActivity;
 import com.example.geolearn.feedback.FeedbackHistory;
+import com.example.geolearn.game.FlashcardActivity; // Changed to match your imports
 import com.example.geolearn.game.FlashcardSelectionActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -32,11 +34,15 @@ import com.google.firebase.firestore.Query;
 import com.example.geolearn.profile.BookmarksActivity;
 import com.example.geolearn.game.GameAnalysisActivity;
 import com.example.geolearn.game.GameCategoryActivity;
+import com.example.geolearn.profile.BookmarksActivity;
 import com.example.geolearn.profile.ProgressDashboardActivity;
-import com.example.geolearn.R;
 import com.example.geolearn.profile.SettingsActivity;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,14 +63,14 @@ public class MainMenuActivity extends AppCompatActivity implements NavigationVie
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_menu);
 
-        // Initialize Firestore
+        // 1. Initialize Firebase
         db = FirebaseFirestore.getInstance();
 
-        // 1. Setup Toolbar
+        // 2. Setup Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        // 2. Setup Sidebar (Drawer)
+        // 3. Setup Navigation Drawer
         drawerLayout = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
 
@@ -76,7 +82,117 @@ public class MainMenuActivity extends AppCompatActivity implements NavigationVie
 
         navigationView.setNavigationItemSelectedListener(this);
 
-        // 3. --- EXISTING CARD LISTENERS ---
+        // --- NEW: Update Header ---
+        updateNavHeader();
+
+        // 4. Bind Dashboard Views
+        tvMasteryPercent = findViewById(R.id.tvMasteryPercent);
+        pbMastery = findViewById(R.id.pbMastery);
+
+        // 5. Setup Card Click Listeners
+        setupClickListeners();
+
+        // Update Dashboard Data
+        updateDashboardCard();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updateDashboardCard();
+        // Also refresh header in case user changed profile details
+        updateNavHeader();
+    }
+
+    /**
+     * Updates the Navigation Header with Username and Email from Firestore.
+     */
+    private void updateNavHeader() {
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        View headerView = navigationView.getHeaderView(0);
+
+        TextView navName = headerView.findViewById(R.id.nav_header_name);
+        TextView navEmail = headerView.findViewById(R.id.nav_header_email);
+        ImageView navImage = headerView.findViewById(R.id.nav_header_image);
+
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+        if (user != null) {
+            if (user.isAnonymous()) {
+                navName.setText("Guest");
+                navEmail.setText("Sign up to save progress");
+                navImage.setImageResource(R.mipmap.ic_launcher_round);
+            } else {
+                String userId = user.getUid();
+                db.collection("users").document(userId).get()
+                        .addOnSuccessListener(documentSnapshot -> {
+                            if (documentSnapshot.exists()) {
+                                // Fetch 'username' field
+                                String username = documentSnapshot.getString("username");
+                                String email = documentSnapshot.getString("email");
+
+                                if (username != null && !username.isEmpty()) {
+                                    navName.setText(username);
+                                } else {
+                                    navName.setText("GeoStudent");
+                                }
+
+                                if (email != null && !email.isEmpty()) {
+                                    navEmail.setText(email);
+                                } else {
+                                    navEmail.setText(user.getEmail());
+                                }
+
+                                // Set the User Icon
+                                navImage.setImageResource(android.R.drawable.ic_menu_myplaces);
+                            }
+                        })
+                        .addOnFailureListener(e -> Log.e("MainMenu", "Error loading user header", e));
+            }
+        }
+    }
+
+    // --- YOUR ORIGINAL DASHBOARD CODE (UNCHANGED) ---
+    private void updateDashboardCard() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) {
+            tvMasteryPercent.setText("0%");
+            pbMastery.setProgress(0);
+            return;
+        }
+
+        db.collection("Scores")
+                .whereEqualTo("userId", user.getUid())
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        long totalEarned = 0;
+                        long totalPossible = 0;
+
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            Long score = document.getLong("score");
+                            Long totalQ = document.getLong("totalQuestions");
+
+                            if (score != null && totalQ != null) {
+                                totalEarned += score;
+                                totalPossible += totalQ;
+                            }
+                        }
+
+                        int percentage = 0;
+                        if (totalPossible > 0) {
+                            percentage = (int) ((totalEarned * 100) / totalPossible);
+                        }
+
+                        tvMasteryPercent.setText(percentage + "%");
+                        pbMastery.setProgress(percentage);
+                    } else {
+                        Log.e("MainMenu", "Error getting score documents: ", task.getException());
+                    }
+                });
+    }
+
+    private void setupClickListeners() {
         findViewById(R.id.cardDashboard).setOnClickListener(v ->
                 startActivity(new Intent(this, ProgressDashboardActivity.class)));
 
@@ -174,26 +290,26 @@ public class MainMenuActivity extends AppCompatActivity implements NavigationVie
         bottomSheetDialog.setContentView(sheetView);
 
         sheetView.findViewById(R.id.cardBeginner).setOnClickListener(v -> {
-            startQuizWithDifficulty("Beginner");
+            startQuiz("Beginner");
             bottomSheetDialog.dismiss();
         });
 
         sheetView.findViewById(R.id.cardIntermediate).setOnClickListener(v -> {
-            startQuizWithDifficulty("Intermediate");
+            startQuiz("Intermediate");
             bottomSheetDialog.dismiss();
         });
 
         sheetView.findViewById(R.id.cardAdvanced).setOnClickListener(v -> {
-            startQuizWithDifficulty("Advanced");
+            startQuiz("Advanced");
             bottomSheetDialog.dismiss();
         });
 
         bottomSheetDialog.show();
     }
 
-    private void startQuizWithDifficulty(String level) {
+    private void startQuiz(String difficulty) {
         Intent intent = new Intent(MainMenuActivity.this, GameCategoryActivity.class);
-        intent.putExtra("DIFFICULTY_LEVEL", level);
+        intent.putExtra("DIFFICULTY", difficulty);
         startActivity(intent);
     }
 
@@ -202,7 +318,7 @@ public class MainMenuActivity extends AppCompatActivity implements NavigationVie
         int id = item.getItemId();
 
         if (id == R.id.nav_home) {
-            // Already on home screen
+            // Already here
         } else if (id == R.id.nav_settings) {
             startActivity(new Intent(this, SettingsActivity.class));
         } else if (id == R.id.nav_feedback) {
@@ -217,7 +333,6 @@ public class MainMenuActivity extends AppCompatActivity implements NavigationVie
         return true;
     }
 
-    // --- LOGOUT LOGIC ---
     private void performLogout() {
         UserSession.clear(this);
         FirebaseAuth.getInstance().signOut();
