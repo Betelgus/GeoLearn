@@ -269,6 +269,8 @@ public class QuizUIActivity extends AppCompatActivity {
         btn4.setBackgroundColor(Color.TRANSPARENT); btn4.setTextColor(defaultColor);
     }
 
+    // ... [Inside QuizUIActivity class, keep existing code] ...
+
     private void finishGame() {
         if (timer != null) timer.cancel();
 
@@ -279,13 +281,17 @@ public class QuizUIActivity extends AppCompatActivity {
         int minutes = (int) ((timeElapsed / (1000 * 60)) % 60);
         String formattedTime = String.format("%02d:%02d", minutes, seconds);
 
-        // Example: "triviaBeginner"
-        String quizType = "trivia" + currentDifficulty.substring(0, 1).toUpperCase() + currentDifficulty.substring(1);
-
         Intent intent = new Intent(this, QuizResultActivity.class);
+
         intent.putExtra("SCORE", score);
         intent.putExtra("TOTAL_QUESTIONS", questionList.size());
         intent.putExtra("TIME_TAKEN", formattedTime);
+
+        // CRITICAL: Pass the difficulty string
+        intent.putExtra("DIFFICULTY", currentDifficulty);
+
+        // Optional: Keep this if you need it for other logic
+        String quizType = "trivia" + currentDifficulty.substring(0, 1).toUpperCase() + currentDifficulty.substring(1);
         intent.putExtra("QUIZ_TYPE", quizType);
         if (getIntent().getBooleanExtra("IS_GUEST_MODE", false)) {
             intent.putExtra("IS_GUEST_MODE", true);
@@ -295,9 +301,5 @@ public class QuizUIActivity extends AppCompatActivity {
         finish();
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (timer != null) timer.cancel();
-    }
+// ... [End of class] ...
 }
