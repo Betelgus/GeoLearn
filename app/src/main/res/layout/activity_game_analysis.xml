@@ -20,9 +20,9 @@
         android:layout_height="match_parent">
 
         <LinearLayout
+            android:id="@+id/main_content_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/main_content_layout"
             android:orientation="vertical"
             android:padding="24dp">
 
@@ -30,20 +30,37 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Your Progress"
+                android:textColor="#2D3436"
                 android:textSize="24sp"
                 android:textStyle="bold"
-                android:textColor="#2D3436"
-                android:layout_marginBottom="24dp"/>
+                android:layout_marginBottom="16dp"/>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/dropdown_difficulty_layout"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Filter by Difficulty"
+                android:layout_marginBottom="24dp">
+
+                <AutoCompleteTextView
+                    android:id="@+id/dropdown_difficulty"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="none"
+                    android:text="Overall" />
+            </com.google.android.material.textfield.TextInputLayout>
+
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/card_bar_chart"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="2dp"
                 app:strokeColor="#E0E0E0"
-                app:strokeWidth="1dp"
-                android:layout_marginBottom="16dp">
+                app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -55,39 +72,39 @@
                         android:id="@+id/header_bar_chart"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
                         android:clickable="true"
-                        android:focusable="true">
+                        android:focusable="true"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Score History &amp; Average"
+                            android:text="Average Score"
+                            android:textColor="#2D3436"
                             android:textSize="18sp"
-                            android:textStyle="bold"
-                            android:textColor="#2D3436"/>
+                            android:textStyle="bold" />
 
                         <ImageView
                             android:id="@+id/arrow_bar"
                             android:layout_width="24dp"
                             android:layout_height="24dp"
-                            android:src="@android:drawable/arrow_down_float"
-                            app:tint="#636E72"/>
+                            android:src="@android:drawable/arrow_up_float"
+                            app:tint="#636E72" />
                     </LinearLayout>
 
                     <LinearLayout
                         android:id="@+id/layout_bar_content"
                         android:layout_width="match_parent"
                         android:layout_height="300dp"
-                        android:orientation="vertical"
-                        android:layout_marginTop="16dp">
+                        android:layout_marginTop="16dp"
+                        android:orientation="vertical">
 
                         <com.github.mikephil.charting.charts.BarChart
                             android:id="@+id/bar_chart_analysis"
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent"/>
+                            android:layout_height="match_parent" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -96,11 +113,11 @@
                 android:id="@+id/card_pie_chart"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="2dp"
                 app:strokeColor="#E0E0E0"
-                app:strokeWidth="1dp"
-                android:layout_marginBottom="16dp">
+                app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -112,40 +129,40 @@
                         android:id="@+id/header_pie_chart"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
                         android:clickable="true"
-                        android:focusable="true">
+                        android:focusable="true"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Category Popularity"
+                            android:text="Game Popularity"
+                            android:textColor="#2D3436"
                             android:textSize="18sp"
-                            android:textStyle="bold"
-                            android:textColor="#2D3436"/>
+                            android:textStyle="bold" />
 
                         <ImageView
                             android:id="@+id/arrow_pie"
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:src="@android:drawable/arrow_down_float"
-                            app:tint="#636E72"/>
+                            app:tint="#636E72" />
                     </LinearLayout>
 
                     <LinearLayout
                         android:id="@+id/layout_pie_content"
                         android:layout_width="match_parent"
                         android:layout_height="300dp"
-                        android:orientation="vertical"
                         android:layout_marginTop="16dp"
+                        android:orientation="vertical"
                         android:visibility="gone">
 
                         <com.github.mikephil.charting.charts.PieChart
                             android:id="@+id/pie_chart_analysis"
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent"/>
+                            android:layout_height="match_parent" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

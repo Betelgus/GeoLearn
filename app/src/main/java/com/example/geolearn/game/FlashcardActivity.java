@@ -12,6 +12,7 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat; // Import for colors
 
 import com.bumptech.glide.Glide;
 import com.example.geolearn.R;
@@ -23,6 +24,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.ListenerRegistration; // Import for cleanup
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
@@ -51,7 +53,10 @@ public class FlashcardActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private Set<String> bookmarkedIds = new HashSet<>();
     private String userId;
-    private boolean isGuest = true; // Default to true for safety
+    private boolean isGuest = true;
+
+    // Fix: Listener Registration to prevent memory leaks
+    private ListenerRegistration bookmarkListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,8 +82,7 @@ public class FlashcardActivity extends AppCompatActivity {
         // 2. Setup Firebase
         db = FirebaseFirestore.getInstance();
 
-        // 3. CHECK SESSION (Crucial Step)
-        // This determines if the user is a Guest or a Registered User
+        // 3. CHECK SESSION
         checkUserSession();
 
         // 4. Load Data
@@ -90,25 +94,45 @@ public class FlashcardActivity extends AppCompatActivity {
         btnBookmark.setOnClickListener(v -> toggleBookmark());
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Fix: Clean up listener when activity is destroyed
+        if (bookmarkListener != null) {
+            bookmarkListener.remove();
+        }
+    }
+
     /**
      * Determines if the current user is a Guest or Registered.
-     * Logic:
-     * - Guest/Anonymous -> Hide Bookmark Button
-     * - Registered User -> Show Bookmark Button & Load Bookmarks
+     * Priority:
+     * 1. Intent Flag ("FORCE_GUEST") -> If true, force guest mode.
+     * 2. Firebase Auth -> If logged in, set as User.
      */
     private void checkUserSession() {
+        // 1. Check if the previous screen explicitely said "Be a Guest"
+        boolean forcedGuest = getIntent().getBooleanExtra("FORCE_GUEST", false);
+
+        if (forcedGuest) {
+            // FORCE GUEST MODE (Ignores Firebase login)
+            isGuest = true;
+            userId = null;
+            btnBookmark.setVisibility(View.GONE);
+            return; // Stop here!
+        }
+
+        // 2. Normal Check (Only runs if not forced)
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
-        // You are a USER only if: user exists AND user is NOT anonymous
         if (user != null && !user.isAnonymous()) {
             isGuest = false;
             userId = user.getUid();
-            btnBookmark.setVisibility(View.VISIBLE); // Show Star
+            btnBookmark.setVisibility(View.VISIBLE);
             setupFirestoreListener();
         } else {
             isGuest = true;
             userId = null;
-            btnBookmark.setVisibility(View.GONE); // Hide Star
+            btnBookmark.setVisibility(View.GONE);
         }
     }
 
@@ -119,7 +143,6 @@ public class FlashcardActivity extends AppCompatActivity {
         if (loadingProgressBar != null) loadingProgressBar.setVisibility(View.VISIBLE);
 
         Query query;
-
         if (category.equals("random")) {
             query = db.collection("flashcards");
         } else {
@@ -134,7 +157,7 @@ public class FlashcardActivity extends AppCompatActivity {
                 for (DocumentSnapshot doc : queryDocumentSnapshots) {
                     Country c = doc.toObject(Country.class);
                     if (c != null) {
-                        c.id = doc.getId(); // Save the Firestore ID
+                        c.id = doc.getId(); // Ensure your Country class has: public String id;
                         countryList.add(c);
                     }
                 }
@@ -158,27 +181,27 @@ public class FlashcardActivity extends AppCompatActivity {
     }
 
     private void setupFirestoreListener() {
-        // Safety Check: Never run this if guest
         if (isGuest || userId == null) return;
 
-        db.collection("users")
+        // Fix: Assign the listener to a variable so we can remove it later
+        bookmarkListener = db.collection("users")
                 .document(userId)
                 .collection("bookmarks")
-                .addSnapshotListener(new EventListener<QuerySnapshot>() {
-                    @Override
-                    public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
-                        if (error != null) return;
+                .addSnapshotListener((value, error) -> {
+                    if (error != null) {
+                        Log.e("FlashcardActivity", "Listen failed.", error);
+                        return;
+                    }
 
-                        bookmarkedIds.clear();
-                        if (value != null) {
-                            for (DocumentSnapshot doc : value) {
-                                bookmarkedIds.add(doc.getId());
-                            }
+                    bookmarkedIds.clear();
+                    if (value != null) {
+                        for (DocumentSnapshot doc : value) {
+                            bookmarkedIds.add(doc.getId());
                         }
-                        // Refresh the star icon if data is loaded
-                        if (!countryList.isEmpty()) {
-                            updateBookmarkIconState();
-                        }
+                    }
+                    // Only update icon if data is ready
+                    if (!countryList.isEmpty()) {
+                        updateBookmarkIconState();
                     }
                 });
     }
@@ -197,10 +220,9 @@ public class FlashcardActivity extends AppCompatActivity {
             tvCapital.setText("N/A");
         }
 
-        // Image Loading Logic
+        // Image Loading Logic with Null Safety
         if (country.flags != null && country.flags.png != null) {
             String imgName = country.flags.png.toLowerCase().replace(" ", "_");
-            // Remove extension if present
             if (imgName.contains(".")) imgName = imgName.substring(0, imgName.lastIndexOf('.'));
 
             int resId = getResources().getIdentifier(imgName, "drawable", getPackageName());
@@ -208,13 +230,14 @@ public class FlashcardActivity extends AppCompatActivity {
             if (resId != 0) {
                 Glide.with(this).load(resId).into(imgFlag);
             } else {
-                // Fallback icon
                 imgFlag.setImageResource(android.R.drawable.ic_menu_gallery);
             }
+        } else {
+            imgFlag.setImageResource(android.R.drawable.ic_menu_gallery);
         }
 
-        // --- VISIBILITY CHECK ---
-        // Ensure button status is correct for every card swap
+        // --- VISIBILITY LOGIC ---
+        // Forces the button state based on session every time card changes
         if (isGuest) {
             btnBookmark.setVisibility(View.GONE);
         } else {
@@ -227,23 +250,25 @@ public class FlashcardActivity extends AppCompatActivity {
         if (isGuest || countryList.isEmpty()) return;
 
         Country current = countryList.get(currentIndex);
+        // Safety check: if Country object has no ID, we can't bookmark it
         if (current.id == null) return;
 
         if (bookmarkedIds.contains(current.id)) {
-            // Filled Star (Active)
+            // Active Star (Yellow)
             btnBookmark.setImageResource(android.R.drawable.btn_star_big_on);
-            btnBookmark.setColorFilter(getResources().getColor(R.color.accent));
+            // Fix: Use ContextCompat for colors
+            btnBookmark.setColorFilter(ContextCompat.getColor(this, R.color.accent));
         } else {
-            // Outline Star (Inactive)
+            // Inactive Star (Gray)
             btnBookmark.setImageResource(android.R.drawable.btn_star_big_off);
-            btnBookmark.setColorFilter(getResources().getColor(R.color.text_secondary));
+            // Fix: Use ContextCompat for colors
+            btnBookmark.setColorFilter(ContextCompat.getColor(this, R.color.text_secondary));
         }
     }
 
     private void toggleBookmark() {
-        // Double Security check: Stop guests from clicking even if button is somehow visible
         if (isGuest || userId == null) {
-            Toast.makeText(this, "Please login to save bookmarks", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Log in to save bookmarks", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -261,11 +286,11 @@ public class FlashcardActivity extends AppCompatActivity {
                 .document(current.id);
 
         if (bookmarkedIds.contains(current.id)) {
-            // REMOVE
+            // Remove Bookmark
             docRef.delete().addOnSuccessListener(aVoid ->
                     Toast.makeText(this, "Removed bookmark", Toast.LENGTH_SHORT).show());
         } else {
-            // ADD
+            // Add Bookmark
             Map<String, Object> data = new HashMap<>();
             data.put("timestamp", System.currentTimeMillis());
             data.put("name", current.name.common);
