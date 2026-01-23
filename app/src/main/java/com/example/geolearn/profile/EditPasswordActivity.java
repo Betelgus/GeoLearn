@@ -40,9 +40,12 @@ public class EditPasswordActivity extends AppCompatActivity {
         etConfirmPass = findViewById(R.id.etConfirmPassword);
         btnUpdate = findViewById(R.id.btnUpdatePassword);
 
-        // Optional: Back button support if it exists in your XML
+        //  Back button support if it exists in your XML
         if (findViewById(R.id.btnBack) != null) {
-            findViewById(R.id.btnBack).setOnClickListener(v -> finish());
+            findViewById(R.id.btnBack).setOnClickListener(v -> {
+                // Closes the activity and returns to the previous screen (Settings)
+                finish();
+            });
         }
 
         btnUpdate.setOnClickListener(v -> handlePasswordChange());

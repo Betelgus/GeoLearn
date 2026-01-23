@@ -43,6 +43,11 @@ public class EditProfileActivity extends AppCompatActivity {
         etAge = findViewById(R.id.etAge);
         btnSave = findViewById(R.id.btnSave);
 
+        findViewById(R.id.btnBack).setOnClickListener(v -> {
+            // This closes EditProfileActivity and returns the user to SettingsActivity
+            finish();
+        });
+
         loadUserData();
 
         btnSave.setOnClickListener(v -> saveProfileChanges());
