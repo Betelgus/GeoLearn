@@ -39,9 +39,11 @@
         <activity android:name=".game.GameAnalysisActivity" />
         <activity android:name=".game.GameCategoryActivity" />
         <activity android:name=".game.FlagGuessActivity" />
+        <activity android:name=".profile.EditProfileActivity" />
+        <activity android:name=".profile.EditPasswordActivity" />
+        <activity android:name=".profile.SettingsActivity" />
         <activity android:name=".profile.BookmarksActivity" />
         <activity android:name=".profile.ProgressDashboardActivity" />
-        <activity android:name=".profile.SettingsActivity" />
         <activity android:name=".game.QuizResultActivity" />
         <activity android:name=".game.FlagResultActivity" />
         <activity android:name=".feedback.FeedbackActivity" />
