@@ -310,7 +310,7 @@ public class MainMenuActivity extends AppCompatActivity implements NavigationVie
 
     private void startQuiz(String difficulty) {
         Intent intent = new Intent(MainMenuActivity.this, GameCategoryActivity.class);
-        intent.putExtra("DIFFICULTY", difficulty);
+        intent.putExtra("DIFFICULTY_LEVEL", difficulty);
         startActivity(intent);
     }
 
