@@ -38,7 +38,7 @@ public class FlagGuessActivity extends AppCompatActivity {
 
     private static final String TAG = "FlagGuessActivity";
     private static final String PREFS_NAME = "FlagQuizPrefs";
-    private static final String KEY_QUESTIONS_UPLOADED = "flag_questions_uploaded_v3"; // Changed to force re-upload
+    private static final String KEY_QUESTIONS_UPLOADED = "flag_questions_uploaded_v3";
 
     private ProgressBar progressBar;
     private TextView tvFlagCount;
@@ -152,7 +152,10 @@ public class FlagGuessActivity extends AppCompatActivity {
         questionCount++;
         tvFlagCount.setText("Flag " + questionCount + "/" + questionList.size());
 
-        Glide.with(this).load(currentQuestion.getFlagUrl()).placeholder(R.drawable.ic_launcher_background).into(imgFlag);
+        // FIX: Removed the placeholder that was causing the green grid
+        Glide.with(this)
+                .load(currentQuestion.getFlagUrl())
+                .into(imgFlag);
 
         List<String> options = new ArrayList<>(currentQuestion.getOptions());
         Collections.shuffle(options);
@@ -227,7 +230,7 @@ public class FlagGuessActivity extends AppCompatActivity {
             public void onFinish() {
                 if(!isAnswered) {
                     updateQuestionAnalytics(false);
-                    checkAnswer(btn1); // Auto-fail
+                    checkAnswer(btn1);
                 }
             }
         }.start();
@@ -243,19 +246,13 @@ public class FlagGuessActivity extends AppCompatActivity {
         int minutes = (int) ((timeElapsed / (1000 * 60)) % 60);
         String formattedTime = String.format("%02d:%02d", minutes, seconds);
 
-        // MERGE: Point to the unified QuizResultActivity
         Intent intent = new Intent(this, QuizResultActivity.class);
-
-        // Standard Extras
         intent.putExtra("SCORE", score);
         intent.putExtra("TOTAL_QUESTIONS", questionList.size());
         intent.putExtra("TIME_TAKEN", formattedTime);
-        intent.putExtra("GAME_TYPE", "Flag Quiz"); // Explicitly state the game type
-
-        // HAFIZ'S CHANGE: Pass the specific difficulty string
+        intent.putExtra("GAME_TYPE", "Flag Quiz");
         intent.putExtra("DIFFICULTY", currentDifficulty);
 
-        // BONA'S CHANGE: Pass the Guest Mode flag if it exists
         if (getIntent().getBooleanExtra("IS_GUEST_MODE", false)) {
             intent.putExtra("IS_GUEST_MODE", true);
         }
