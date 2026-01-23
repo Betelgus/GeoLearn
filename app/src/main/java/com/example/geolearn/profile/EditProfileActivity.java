@@ -50,44 +50,67 @@ public class EditProfileActivity extends AppCompatActivity {
 
     private void loadUserData() {
         if (UserSession.isGuestMode(this)) {
-            etUsername.setHint("Guest User");
-            etEmail.setHint("guest@geolearn.com");
-            etAge.setHint("0");
+            etUsername.setText("Guest User");
+            etEmail.setText("guest@geolearn.com");
+            etAge.setText("0");
             disableFields();
             return;
         }
 
-        // Try Intent first, then Local DB
+        // 1. Try Intent Extras first (if passed from Profile/Settings)
         String currentName = getIntent().getStringExtra("current_username");
         String currentEmail = getIntent().getStringExtra("current_email");
         String currentAge = getIntent().getStringExtra("current_age");
 
-        if (currentName != null) {
-            etUsername.setHint(currentName);
-            etEmail.setHint(currentEmail);
-            etAge.setHint(currentAge);
-            
-            // Disable email field as discussed
-            etEmail.setEnabled(false);
+        if (currentName != null && currentEmail != null) {
+            etUsername.setText(currentName);
+            etEmail.setText(currentEmail);
+            etAge.setText(currentAge);
         } else {
+            // 2. Fetch from Databases
             FirebaseUser currentUser = mAuth.getCurrentUser();
             if (currentUser != null) {
+                String uid = currentUser.getUid();
+                
+                // Check Local DB first (Room)
                 new Thread(() -> {
-                    User user = localDb.userDao().getUserById(currentUser.getUid());
+                    User user = localDb.userDao().getUserById(uid);
                     if (user != null) {
                         runOnUiThread(() -> {
-                            etUsername.setHint(user.username);
-                            etEmail.setHint(user.email);
-                            etAge.setHint(String.valueOf(user.age));
-                            
-                            // Disable email field
-                            etEmail.setEnabled(false);
-                            etEmail.setText(user.email); // Keep text in email so they know what it is
+                            etUsername.setText(user.username);
+                            etEmail.setText(user.email);
+                            etAge.setText(String.valueOf(user.age));
                         });
+                    } else {
+                        // 3. Fallback to Firestore
+                        fetchFromFirestore(uid);
                     }
                 }).start();
             }
         }
+    }
+
+    private void fetchFromFirestore(String uid) {
+        db.collection("users").document(uid).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String name = documentSnapshot.getString("username");
+                        String email = documentSnapshot.getString("email");
+                        Long age = documentSnapshot.getLong("age");
+
+                        runOnUiThread(() -> {
+                            if (name != null) etUsername.setText(name);
+                            if (email != null) etEmail.setText(email);
+                            if (age != null) etAge.setText(String.valueOf(age));
+                        });
+
+                        // Cache it locally
+                        if (name != null && email != null && age != null) {
+                            saveUserLocally(uid, name, email, age.intValue());
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> Log.e(TAG, "Firestore fetch failed", e));
     }
 
     private void disableFields() {
@@ -95,23 +118,25 @@ public class EditProfileActivity extends AppCompatActivity {
         etEmail.setEnabled(false);
         etAge.setEnabled(false);
         btnSave.setEnabled(false);
+        btnSave.setAlpha(0.5f);
     }
 
     private void saveProfileChanges() {
-        String newName = etUsername.getText() != null && !etUsername.getText().toString().isEmpty() 
-                ? etUsername.getText().toString().trim() 
-                : (etUsername.getHint() != null ? etUsername.getHint().toString() : "");
-                
-        String newAgeStr = etAge.getText() != null && !etAge.getText().toString().isEmpty() 
-                ? etAge.getText().toString().trim() 
-                : (etAge.getHint() != null ? etAge.getHint().toString() : "");
+        String newName = etUsername.getText() != null ? etUsername.getText().toString().trim() : "";
+        String newEmail = etEmail.getText() != null ? etEmail.getText().toString().trim() : "";
+        String newAgeStr = etAge.getText() != null ? etAge.getText().toString().trim() : "";
 
+        // Validation
         if (TextUtils.isEmpty(newName)) {
-            etUsername.setError("Username is required");
+            etUsername.setError("Username required");
+            return;
+        }
+        if (TextUtils.isEmpty(newEmail) || !android.util.Patterns.EMAIL_ADDRESS.matcher(newEmail).matches()) {
+            etEmail.setError("Valid email required");
             return;
         }
         if (TextUtils.isEmpty(newAgeStr)) {
-            etAge.setError("Age is required");
+            etAge.setError("Age required");
             return;
         }
 
@@ -124,35 +149,46 @@ public class EditProfileActivity extends AppCompatActivity {
         }
 
         FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser == null) {
-            Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        if (currentUser == null) return;
 
         btnSave.setEnabled(false);
         String uid = currentUser.getUid();
-        String email = currentUser.getEmail();
+        String oldEmail = currentUser.getEmail();
 
-        // Update Firestore and Local DB (Skipping Auth Email update as agreed)
-        updateFirestoreAndLocal(uid, newName, email, newAge);
+        // If email changed, we need to update Auth first
+        if (oldEmail != null && !oldEmail.equalsIgnoreCase(newEmail)) {
+            currentUser.updateEmail(newEmail)
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            updateFirestoreAndLocal(uid, newName, newEmail, newAge);
+                        } else {
+                            btnSave.setEnabled(true);
+                            Log.e(TAG, "Email update failed", task.getException());
+                            Toast.makeText(this, "Security: Please log out and back in to change email.", Toast.LENGTH_LONG).show();
+                        }
+                    });
+        } else {
+            // Just update info
+            updateFirestoreAndLocal(uid, newName, oldEmail, newAge);
+        }
     }
 
     private void updateFirestoreAndLocal(String uid, String name, String email, int age) {
         Map<String, Object> updates = new HashMap<>();
         updates.put("username", name);
         updates.put("age", age);
-        // We keep email in Firestore updated just in case, though it shouldn't change here
         updates.put("email", email);
 
         db.collection("users").document(uid).update(updates)
                 .addOnSuccessListener(aVoid -> {
                     saveUserLocally(uid, name, email, age);
                     Toast.makeText(this, "Profile Updated!", Toast.LENGTH_SHORT).show();
+                    setResult(RESULT_OK); // Notify caller
                     finish();
                 })
                 .addOnFailureListener(e -> {
                     btnSave.setEnabled(true);
-                    Toast.makeText(this, "Database error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Update failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
 
@@ -162,7 +198,7 @@ public class EditProfileActivity extends AppCompatActivity {
                 User updatedUser = new User(uid, username, email, age);
                 localDb.userDao().insertUser(updatedUser);
             } catch (Exception e) {
-                Log.e(TAG, "Local DB Error: " + e.getMessage());
+                Log.e(TAG, "Room Update Error: " + e.getMessage());
             }
         }).start();
     }
